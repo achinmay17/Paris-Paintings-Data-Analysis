@@ -23,7 +23,7 @@ All members of the team should contribute equally and may be asked to answer any
 *For your analysis create a new Rmd named "project.Rmd"
 and update accordingly rather than editing this.  Your write up should not have any of the instructions, for example.  Figures should be labeled appropriately and report numbers using significant digits.  This file may be updated so do not edit this document.*
 
-##Code:
+## Code:
 
 In your write up your code should be hidden (`echo = FALSE`) so that your document is neat and easy to read. However your document should include all your code such that if I re-knit your Rmd file I should be able to obtain the results you presented.   If there is any code that you wish to highlight you may included it, but it should contribute significantly to your write up that should be directed to the art historian.
 
@@ -95,11 +95,11 @@ _Points will be deducted for code chunks that should not be included, etc._
 
 Once your write up is submitted, your models will be evaluated on the following criteria based on predictions  on the test data (20 points): 
 
-* Bias:  Average (Yhat-Y)  positive values indicate the model tends to overestimate price (on average) while negative values indicate the model tends to underestimate price.
+* Bias:  Average (Yhat-Y)  positive values indicate the model tends to overestimate price (on average) while negative values indicate the model tends to underestimate price.
 
-* Maximum Deviation:  Max |Y-Yhat| -  identifies the worst prediction  made in the validation data set.
+* Maximum Deviation:  Max |Y-Yhat| -  identifies the worst prediction  made in the validation data set.
 
-* Mean Absolute Deviation:  Average |Y-Yhat| - the average error (regardless of sign).
+* Mean Absolute Deviation:  Average |Y-Yhat| - the average error (regardless of sign).
 
 * Root Mean Square Error: Sqrt Average (Y-Yhat)^2
 
