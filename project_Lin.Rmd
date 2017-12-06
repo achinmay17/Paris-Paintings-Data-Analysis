@@ -1,0 +1,91 @@
+---
+title: "project"
+author: "KangCheng Lin"
+date: "December 3, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###loading libraries
+```{r}
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(purrr)
+```
+
+###loading dataset
+```{r}
+load("paintings_train.Rdata")
+train <- paintings_train
+```
+
+###select variables
+```{r}
+#remove completely descriptive (thus irrelevant) variables
+newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject","authorstyle",
+                                        "author","Height_in","Width_in","Surface_Rect","Diam_in","Surface_Rnd",
+                                        "Interm","winningbidder","material","mat")]
+
+#put price as the first column
+newTrain <- newTrain[,c(7,1:6,8:43)]
+
+#change price into numeric
+newTrain$price <- as.numeric(gsub(",","",newTrain$price))
+class(newTrain$price)
+
+#NA
+which(apply(newTrain,2,anyNA) == TRUE)
+sum(is.na(newTrain$Surface))/nrow(newTrain)
+
+#remove NA
+newTrain <- newTrain[complete.cases(newTrain$Surface),]
+
+#change all character strings to factors
+character_vars <- lapply(newTrain, class) == "character"
+newTrain[, character_vars] <- lapply(newTrain[, character_vars], as.factor)
+
+levels(newTrain$type_intermed)[levels(newTrain$type_intermed)==""] <- "NONE"
+levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)==""] <- "NONE"
+levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
+levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
+```
+
+###overview of dataset
+```{r}
+#distribution of price
+hist(newdat$price, breaks = 20)
+
+#pairs
+pairs(newdat, pch = 19, lower.panel = NULL)
+
+```
+
+###raw analysis (w/o interactions)
+```{r}
+#without logging price
+m1 <- lm(price ~ .,dat=newTrain)
+summary(m1)
+plot(m1,ask=FALSE)
+
+#logging price
+m1 <- lm(log(price) ~ .,dat=newTrain)
+summary(m1)
+plot(m1,ask=FALSE)
+
+#anova
+anova(m1)
+```
+
+###AIC
+```{r}
+
+```
+
+###BIC
+```{r}
+
+```
