@@ -69,7 +69,12 @@ levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <-
 ###raw analysis (w/o interactions)
 ```{r}
 #logging price
-m1 <- lm(log(price) ~ .,dat=newTrain)
+m1 <- lm(log(price) ~ . + lrgfont:winningbiddertype + 
+           lrgfont:dealer + lrgfont:year + lrgfont:diff_origin +
+           lrgfont:Surface + winningbiddertype:dealer + winningbiddertype:year +
+           winningbiddertype:diff_origin + winningbiddertype:Surface +
+           dealer:year + dealer:diff_origin + dealer:Surface +
+           year:diff_origin + year:Surface + diff_origin:Surface,dat=newTrain)
 #summary(m1)
 #plot(m1,ask=FALSE)
 
@@ -107,6 +112,18 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
     winningbiddertype:artistliving, data = newTrain)
 
 #anova(m)
+
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#    artistliving + winningbiddertype + Surface + nfigures + engraved + 
+#    prevcoll + paired + finished + lrgfont + othgenre + discauth + 
+#    dealer:year, data = newTrain)
+
+#anova(m)
+
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+    winningbiddertype + Surface + nfigures + engraved + 
+    prevcoll + paired + finished + lrgfont + othgenre + discauth + 
+    dealer:year, data = newTrain)
 ```
 
 ###testing dataset
