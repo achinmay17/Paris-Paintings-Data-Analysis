@@ -100,10 +100,11 @@ summary(best_BIC)
 #anova(m)
 
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-      artistliving + winningbiddertype + Surface + nfigures + engraved + 
-      prevcoll + paired + finished + lrgfont + othgenre + 
-      discauth + year:artistliving + artistliving:othgenre +
-      lrgfont:discauth, data = newTrain)
+    winningbiddertype + Surface + nfigures + engraved + 
+    prevcoll + paired + finished + lrgfont + othgenre + 
+    discauth + + landsALL:paired + 
+    dealer:prevcoll + winningbiddertype:prevcoll + 
+    winningbiddertype:artistliving, data = newTrain)
 
 #anova(m)
 ```
