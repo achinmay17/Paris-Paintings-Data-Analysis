@@ -64,6 +64,16 @@ levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <-
 #dealer:prevcoll
 #winningbiddertype:prevcoll
 #winningbiddertype:artistliving
+
+#change price into numeric
+#train$price <- as.numeric(gsub(",","",train$price))
+
+#summary(train$price)
+
+
+
+#train$authorstandard[train$price > 600]
+
 ```
 
 ###raw analysis (w/o interactions)
@@ -123,8 +133,8 @@ summary(best_BIC)
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
       winningbiddertype + Surface + nfigures + engraved + 
       prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-      dealer + winningbiddertype:artistliving + dealer:winningbiddertype + 
-      dealer:year + lrgfont:dealer, data = newTrain)
+      dealer + landsALL:paired + dealer:prevcoll + 
+      winningbiddertype:prevcoll + winningbiddertype:artistliving, data = newTrain)
 
 #anova(m)
 ```
