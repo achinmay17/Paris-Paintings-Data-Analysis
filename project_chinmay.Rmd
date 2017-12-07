@@ -112,6 +112,12 @@ train <- train%>%
   mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
 ```
 
+9)
+```{r}
+train <- train%>%
+  mutate(LF = ifelse(finished==0, "no LF", "LF"))
+
+```
 
 
 #EDA 
@@ -180,6 +186,7 @@ ggplot(data = train, aes(x = Surface, y = logprice)) + geom_point() + stat_smoot
 m1 <- lm(logprice ~ Surface, data = train)
 summary(m1)
 ```
+
 8) nfigures and price
 ```{r}
 ggplot(data = train, aes(x = nfigures, y = logprice)) + geom_point() + stat_smooth(method = "lm")
@@ -187,6 +194,7 @@ m1 <- lm(logprice ~ nfigures, data = train)
 summary(m1)
 
 ```
+
 9) 
 ```{r}
 ggplot (data= train, aes (y = price, x =  finished_nofinished, col = finished_nofinished))+
@@ -203,6 +211,13 @@ ggplot (data= train, aes (y = price, x = mytho_nomytho , col = mytho_nomytho ))+
 11) 
 ```{r}
 ggplot (data= train, aes (y = price, x =  history_nohistory, col = history_nohistory))+
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+12)
+```{r}
+ggplot (data= train, aes (y = price, x =  LF, col = LF))+
   geom_boxplot() +
   scale_y_log10()
 ```
