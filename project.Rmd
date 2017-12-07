@@ -91,20 +91,19 @@ summary(best_BIC)
 
 ###Testing Push
 ```{r}
-m <- lm(formula = log(price) ~ (dealer + year + school_pntg + diff_origin + 
-    artistliving + winningbiddertype + Surface + nfigures + engraved + 
-    prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-    discauth)^2, data = newTrain)
+#m <- lm(formula = log(price) ~ (dealer + year + school_pntg + diff_origin + 
+#    artistliving + winningbiddertype + Surface + nfigures + engraved + 
+#    prevcoll + othartist + paired + finished + lrgfont + othgenre + 
+#    discauth)^2, data = newTrain)
 
 
 #anova(m)
 
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#      winningbiddertype + Surface + nfigures + engraved + 
-#      prevcoll + paired + finished + lrgfont + othgenre + 
-#      discauth + year:artistliving + 
-#      artistliving:othgenre + lrgfont:discauth + othartist:paired +
-#      school_pntg:landsALL + landsALL:paired, data = newTrain)
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+      winningbiddertype + Surface + nfigures + engraved + 
+      prevcoll + paired + finished + lrgfont + othgenre + 
+      discauth + year:artistliving + artistliving:othgenre +
+      lrgfont:discauth, data = newTrain)
 
 #anova(m)
 ```
