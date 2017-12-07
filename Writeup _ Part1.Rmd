@@ -1,0 +1,43 @@
+---
+title: "Writeup_Part1"
+author: "Chinmay Ajnadkar"
+date: "12/7/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Introduction: 
+
+#Summary of Problem: 
+We have been given a dataset which provides information about auctions of paintings which were sold between years 1764 and 1780. The data tells us about different attributes of painting, information about auction, information about the artist, information about the buyer and the price at which it was sold. There are total 59 columns (variables) in data including 'price'. Our task to find out relation between the variables and the price so that we can accurately predict the price of a paintings if we know the above information. We also should interpret the results as which are the most/least influential factor in determining the price of the painting. 
+
+Objectives:
+1) Exploratory data analysis
+2) Find out interaction
+3) Create a model with 10-20 most influential factors and interpret results
+4) Test the model with test data and interpret the results 
+
+
+#Exploratory Data Analysis
+
+#Variables which we think are not importanat in predicting the price
+1) sale - We have sepater variables for dealer code and year
+2) materialCat- 
+3) subject- Too many levels in a simple model 
+4) authorstandard- Too many variable in a simple model
+5) authorstyle - n/a for most of the values
+6) winningbidder- Too many variable in a simple model
+7) surface_rect- We have separate variable for 'surface' and 'shape'
+8) surface_rnd- We have separate variable for 'surface' and 'shape'
+
+
+# Some Graphs and analysis
+1)  
+
+
+
+
+#Some interactions
