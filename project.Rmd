@@ -78,6 +78,14 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
     artistliving + winningbiddertype + nfigures + engraved + 
     prevcoll + othartist + paired + finished + lrgfont + lands_sc + 
     othgenre + portrait + still_life + discauth, data = newTrain)
+
+anova(m)
+
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+          winningbiddertype + nfigures + engraved + 
+          prevcoll + paired + finished + lrgfont + lands_sc + discauth, data = newTrain)
+
+anova(m)
 ```
 
 ###testing dataset
