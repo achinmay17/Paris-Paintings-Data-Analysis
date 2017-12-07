@@ -147,7 +147,7 @@ summary(best_BIC)
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + nfigures + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-        dealer:year + shape_recode, data = newTrain)
+        dealer:year, data = newTrain)
 
 ```
 
