@@ -123,10 +123,10 @@ summary(best_BIC)
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
       winningbiddertype + Surface + nfigures + engraved + 
       prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-      dealer + landsALL:paired + dealer:prevcoll + winningbiddertype:prevcoll + 
-      winningbiddertype:artistliving + dealer:winningbiddertype + 
+      dealer + winningbiddertype:artistliving + dealer:winningbiddertype + 
       dealer:year + lrgfont:dealer, data = newTrain)
 
+#anova(m)
 ```
 
 ###testing dataset
