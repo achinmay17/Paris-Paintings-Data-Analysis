@@ -28,21 +28,14 @@ train <- paintings_train
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject","authorstyle",
                                         "author","Height_in","Width_in","Surface_Rect","Diam_in","Surface_Rnd",
-                                        "Interm","winningbidder","material","mat")]
+                                        "Interm","winningbidder","material","mat","Surface")]
 
 #put price as the first column
-newTrain <- newTrain[,c(7,1:6,8:43)]
+newTrain <- newTrain[,c(7,1:6,8:42)]
 
 #change price into numeric
 newTrain$price <- as.numeric(gsub(",","",newTrain$price))
 class(newTrain$price)
-
-#NA
-which(apply(newTrain,2,anyNA) == TRUE)
-sum(is.na(newTrain$Surface))/nrow(newTrain)
-
-#remove NA
-newTrain <- newTrain[complete.cases(newTrain$Surface),]
 
 #change all character strings to factors
 character_vars <- lapply(newTrain, class) == "character"
@@ -82,9 +75,9 @@ summary(best_BIC)
 ###Testing Push
 ```{r}
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-    artistliving + winningbiddertype + Surface + nfigures + engraved + 
+    artistliving + winningbiddertype + nfigures + engraved + 
     prevcoll + othartist + paired + finished + lrgfont + lands_sc + 
-    othgenre + discauth, data = newTrain)
+    othgenre + portrait + still_life + discauth, data = newTrain)
 ```
 
 ###testing dataset
