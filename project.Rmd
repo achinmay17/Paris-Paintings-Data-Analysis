@@ -104,7 +104,9 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
       prevcoll + paired + finished + lrgfont + othgenre + 
       discauth + winningbiddertype:artistliving + year:artistliving + 
       artistliving:othgenre + lrgfont:discauth + othartist:paired +
-      school_pntg:landsALL, data = newTrain)
+      school_pntg:landsALL + landsALL:paired + 
+      dealer:prevcoll + winningbiddertype:prevcoll + 
+      winningbiddertype:artistliving, data = newTrain)
 
 
 ```
