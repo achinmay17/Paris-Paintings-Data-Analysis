@@ -25,6 +25,13 @@ train <- paintings_train
 
 ###select variables
 ```{r}
+#Professor's recoding
+train <- train %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "round", Shape)))))
+
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
                                         "authorstyle","authorstandard","author",
@@ -34,7 +41,7 @@ newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subj
                                         "lands_sc","lands_elem","lands_figs","lands_ment")]
 
 #put price as the first column
-newTrain <- newTrain[,c(7,1:6,8:37)]
+newTrain <- newTrain[,c(7,1:6,8:39)]
 
 #change price into numeric
 newTrain$price <- as.numeric(gsub(",","",newTrain$price))
@@ -69,11 +76,7 @@ levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <-
 #train$price <- as.numeric(gsub(",","",train$price))
 
 #summary(train$price)
-
-
-
-#train$authorstandard[train$price > 600]
-
+#train$authorstandard[train$price > 10000]
 ```
 
 ###raw analysis (w/o interactions)
@@ -130,19 +133,35 @@ summary(best_BIC)
 
 #anova(m)
 
-m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-      winningbiddertype + Surface + nfigures + engraved + 
-      prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-      dealer + landsALL:paired + dealer:prevcoll + 
-      winningbiddertype:prevcoll + winningbiddertype:artistliving, data = newTrain)
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#      winningbiddertype + Surface + nfigures + engraved + 
+#      prevcoll + paired + finished + lrgfont + othgenre + discauth + 
+#      dealer + landsALL:paired + dealer:prevcoll + 
+#      winningbiddertype:prevcoll + winningbiddertype:artistliving, data = newTrain)
 
-#anova(m)
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#    artistliving + winningbiddertype + Surface + nfigures + engraved + 
+#    prevcoll + paired + finished + lrgfont + othgenre + discauth + 
+#    dealer:year, data = newTrain)
+
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + nfigures + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre + discauth + 
+        dealer:year + shape_recode, data = newTrain)
+
 ```
 
 ###testing dataset
 ```{r}
 load("paintings_test.Rdata")
 test <- paintings_test
+
+#Professor's recoding
+test <- test %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "round", Shape)))))
 
 newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
                                         "authorstyle","authorstandard","author",
