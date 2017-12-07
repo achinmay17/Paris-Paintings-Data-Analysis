@@ -26,16 +26,18 @@ train <- paintings_train
 ###select variables
 ```{r}
 #remove completely descriptive (thus irrelevant) variables
-newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject","authorstyle",
-                                        "author","Height_in","Width_in","Surface_Rect","Diam_in","Surface_Rnd",
-                                        "Interm","winningbidder","material","mat","lands_sc","lands_elem","lands_figs","lands_ment","winning_bidder")]
+newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder","winningbiddertype","endbuyer",
+                                        "Interm","type_intermed","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat","MaterialCat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
 
 #put price as the first column
-newTrain <- newTrain[,c(7,1:6,8:39)]
+newTrain <- newTrain[,c(7,1:6,8:35)]
 
 #change price into numeric
 newTrain$price <- as.numeric(gsub(",","",newTrain$price))
-class(newTrain$price)
 
 #NA
 which(apply(newTrain,2,anyNA) == TRUE)
@@ -48,23 +50,23 @@ newTrain <- newTrain[complete.cases(newTrain$Surface),]
 character_vars <- lapply(newTrain, class) == "character"
 newTrain[, character_vars] <- lapply(newTrain[, character_vars], as.factor)
 
-levels(newTrain$type_intermed)[levels(newTrain$type_intermed)==""] <- "NONE"
-levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)==""] <- "NONE"
-levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
-levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
+#levels(newTrain$type_intermed)[levels(newTrain$type_intermed)==""] <- "NONE"
+#levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)==""] <- "NONE"
+#levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
+#levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
 levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
-levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
+#levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
 ```
 
 ###raw analysis (w/o interactions)
 ```{r}
 #logging price
 m1 <- lm(log(price) ~ .,dat=newTrain)
-summary(m1)
-plot(m1,ask=FALSE)
+#summary(m1)
+#plot(m1,ask=FALSE)
 
 #anova
-anova(m1)
+#anova(m1)
 ```
 
 ###AIC
@@ -82,10 +84,16 @@ summary(best_BIC)
 ###Testing Push
 ```{r}
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-    artistliving + winningbiddertype + Surface + nfigures + engraved + 
-    prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-    discauth, data = newTrain)
+    artistliving + Surface + nfigures + engraved + prevcoll + 
+    othartist + paired + finished + lrgfont + othgenre + discauth, 
+    data = newTrain)
 
+anova(m)
+
+m <- lm(formula = log(price) ~ dealer + year + diff_origin + 
+          nfigures + engraved + prevcoll + 
+          paired + finished + lrgfont + othgenre + discauth, 
+          data = newTrain)
 ```
 
 ###testing dataset
@@ -93,24 +101,16 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
 load("paintings_test.Rdata")
 test <- paintings_test
 
-#remove completely descriptive (thus irrelevant) variables
-newTest <- test[,!names(train) %in% c("sale","lot","position","price","logprice","subject","authorstyle",
-                                        "author","Height_in","Width_in","Surface_Rect","Diam_in","Surface_Rnd",
-                                        "Interm","winningbidder","material","mat","lands_sc","lands_elem","lands_figs","lands_ment","winning_bidder")]
+newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder","winningbiddertype","endbuyer",
+                                        "Interm","type_intermed","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat","MaterialCat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment","price")]
 
 #change all character strings to factors
-character_vars_test <- lapply(newTest, class) == "character"
-newTest[, character_vars_test] <- lapply(newTest[, character_vars_test], as.factor)
-
-levels(newTest$type_intermed)[levels(newTest$type_intermed)==""] <- "NONE"
-levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)==""] <- "NONE"
-levels(newTest$endbuyer)[levels(newTest$endbuyer)==""] <- "NONE"
-levels(newTest$materialCat)[levels(newTest$materialCat)==""] <- "NONE"
-levels(newTest$school_pntg)[levels(newTest$school_pntg)=="A"] <- "OTHER"
-levels(newTest$school_pntg)[levels(newTest$school_pntg)=="G"] <- "OTHER"
-levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="EBC"] <- "OTHER"
-levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="BB"] <- "OTHER"
-levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "OTHER"
+character_vars <- lapply(newTrain, class) == "character"
+newTrain[, character_vars] <- lapply(newTrain[, character_vars], as.factor)
 ```
 
 ```{r}
