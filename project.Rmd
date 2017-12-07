@@ -164,11 +164,7 @@ test <- test %>%
                                              ifelse(Shape == "octogon", "round", Shape)))))
 
 newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
-                                        "authorstyle","authorstandard","author",
-                                        "winningbidder",
-                                        "Interm","Height_in","Width_in","Surface_Rect",
-                                        "Diam_in","Surface_Rnd","material","mat",
-                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+                                        "authorstyle","authorstandard","author",                          "winningbidder","Interm","Height_in","Width_in","Surface_Rect","Diam_in","Surface_Rnd","material","mat",                            "lands_sc","lands_elem","lands_figs","lands_ment")]
 
 #change all character strings to factors
 character_vars <- lapply(newTest, class) == "character"
