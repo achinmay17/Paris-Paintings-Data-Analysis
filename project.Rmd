@@ -230,18 +230,21 @@ summary(best_BIC)
 #m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
 #        artistliving + winningbiddertype + Surface +  engraved + 
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
-#        discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin 1292 waiting to be confirmed 1:45 
+#        discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin 1292 waiting to be confirmed 1:45 1284
 
 #m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
 #       artistliving + winningbiddertype + Surface +  engraved + 
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL, data = newTrain) #+ lrgfont:landsALL 1:35. 1289
 
+#m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+#       artistliving + winningbiddertype + Surface +  engraved + 
+#       prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL + #winningbiddertype:prevcoll, data = newTrain) #diff_origin lrglandsall winprevcoll schedule for test 1:50 1284 195, coverage 92
 m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
-       artistliving + winningbiddertype + Surface +  engraved + 
-       prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL + winningbiddertype:prevcoll, data = newTrain) #diff_origin lrglandsall winprevcoll
-
+        artistliving + winningbiddertype + Surface +  engraved + 
+        prevcoll +  paired + finished + lrgfont + othgenre + 
+       discauth +  school_pntg:Surface, data = newTrain) #remove surface:mat_recode
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
