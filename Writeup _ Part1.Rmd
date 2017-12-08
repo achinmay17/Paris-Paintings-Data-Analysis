@@ -1,18 +1,199 @@
 ---
-title: "Writeup_Part1"
-author: "Chinmay Ajnadkar"
-date: "12/7/2017"
+title: "project"
+author: "Team Omega"
+date: "December 3, 2017"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###loading libraries
+
+suppressWarnings(library(dplyr))
+suppressWarnings(library(purrr))
+suppressWarnings(library(knitr))
+suppressWarnings(library(grid))
+suppressWarnings(library(ggplot2))
 ```
 
-#Introduction: 
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###loading dataset
+load("paintings_train.Rdata")
+train <- paintings_train
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###select variables
+
+#Professor's recoding
+train <- train %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+
+#recode
+train <- train %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+train <- train%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+train <- train%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+train <- train%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+train <- train%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+train <- train%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+train <- train%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+#change price into numeric
+train$price <- as.numeric(gsub(",","",train$price))
+
+#remove completely descriptive (thus irrelevant) variables
+newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+#NA
+which(apply(newTrain,2,anyNA) == TRUE)
+
+#remove NA
+newTrain <- newTrain[complete.cases(newTrain$Surface),]
+
+#change all character strings to factors
+character_vars <- lapply(newTrain, class) == "character"
+newTrain[, character_vars] <- lapply(newTrain[, character_vars], as.factor)
+
+#change the level of factor
+levels(newTrain$type_intermed)[levels(newTrain$type_intermed)==""] <- "NONE"
+levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)==""] <- "NONE"
+levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
+levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
+levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
+levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###testing dataset
+load("paintings_test.Rdata")
+test <- paintings_test
+
+#recode
+test <- test %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+test <- test%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+test <- test%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+test <- test%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+test <- test%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+test <- test%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+test <- test%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+
+#Professor's recoding
+test <- test %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+
+newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder", "price",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+#change all character strings to factors
+character_vars <- lapply(newTest, class) == "character"
+newTest[, character_vars] <- lapply(newTest[, character_vars], as.factor)
+
+#change the level of factors
+levels(newTest$type_intermed)[levels(newTest$type_intermed)==""] <- "NONE"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)==""] <- "NONE"
+levels(newTest$endbuyer)[levels(newTest$endbuyer)==""] <- "NONE"
+levels(newTest$materialCat)[levels(newTest$materialCat)==""] <- "NONE"
+levels(newTest$school_pntg)[levels(newTest$school_pntg)=="A"] <- "OTHER"
+levels(newTest$school_pntg)[levels(newTest$school_pntg)=="G"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="EBC"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="BB"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "OTHER"
+
+#simple method to predict the NA in surface
+newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+#initial model with logging price
+m1 <- lm(log(price) ~ .,dat=newTrain)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###AIC
+best_AIC <- step(m1,direction = "both",k=2)
+summary(best_AIC)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###BIC
+best_BIC <- step(m1,direction = "both",k=log(nrow(newTrain)))
+summary(best_BIC)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###Testing Push
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode, data = newTrain)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+predictions = as.data.frame(
+  exp(predict(m, newdata=newTest, 
+              interval = "pred")))
+save(predictions, file="predict-test.Rdata")
+```
+
+
+#1. Introduction: 
 
 #Summary of Problem: 
-We have been given a dataset which provides information about auctions of paintings which were sold between years 1764 and 1780. The data tells us about different attributes of painting, information about auction, information about the artist, information about the buyer and the price at which it was sold. There are total 59 columns (variables) in data including 'price'. Our task to find out relation between the variables and the price so that we can accurately predict the price of a paintings if we know the above information. We also should interpret the results as which are the most/least influential factor in determining the price of the painting. 
+We are given a dataset which provides information about auctions of paintings which were sold between years 1764 and 1780. The data tells us about different attributes of paintings, information about auction, information about the artist, information about the buyer and the price at which it was sold. There are total 59 columns (variables) in data including 'price' and 'log(price)'. Our task is to find out the relation between variables and the price so that we can predict the price of a paintings. We should also interpret the results as which are the most/least influential factor in determining the price of the painting. 
 
 Objectives:
 1) Exploratory data analysis
@@ -20,24 +201,182 @@ Objectives:
 3) Create a model with 10-20 most influential factors and interpret results
 4) Test the model with test data and interpret the results 
 
-
-#Exploratory Data Analysis
-
-#Variables which we think are not importanat in predicting the price
-1) sale - We have sepater variables for dealer code and year
-2) materialCat- 
-3) subject- Too many levels in a simple model 
-4) authorstandard- Too many variable in a simple model
-5) authorstyle - n/a for most of the values
-6) winningbidder- Too many variable in a simple model
-7) surface_rect- We have separate variable for 'surface' and 'shape'
-8) surface_rnd- We have separate variable for 'surface' and 'shape'
-
+#2. Exploratory Data Analysis
 
 # Some Graphs and analysis
-1)  
+
+```{r,echo=FALSE}
+#function to group multiple plots
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+#all the plots
+p2<- ggplot (data= train, aes (y = price, x = fig_mention, col = fig_mention))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p3<-ggplot (data= train, aes (y = price, x = mat_recode , col = mat_recode))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p4 <- ggplot (data= train, aes (y = price, x =  artist_living_notliving, col = artist_living_notliving))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p5<-ggplot(data = train, aes(x = year, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(log(price) ~ year, data = train)
+s2 <- summary(m1)
+
+p6<-ggplot(data = train, aes(x = Surface, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(log(price) ~ Surface, data = train)
+s1<-summary(m1)
+
+p11 <-ggplot(data = train, aes(x = nfigures, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(log(price) ~ nfigures, data = train)
+
+p7<-ggplot (data= train, aes (y = price, x =  finished_nofinished, col = finished_nofinished))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p8<-ggplot (data= train, aes (y = price, x = mytho_nomytho , col = mytho_nomytho ))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p9<-ggplot (data= train, aes (y = price, x =  history_nohistory, col = history_nohistory))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p10 <- ggplot (data= train, aes (y = price, x =  LF, col = LF))+
+  geom_boxplot() +
+  scale_y_log10()
+```
 
 
+```{r,echo=FALSE,warning=FALSE}
+#boxplots
+multiplot(p2,p3,p4,p7,p8,p9,p10, cols=2)
+```
+
+```{r,echo=FALSE,warning=FALSE}
+multiplot(p6, p5, cols=2)
+```
+
+\newpage
+
+#3. Development and assessment of an initial model (10 points)
+
+* Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
+
+```{r,echo=FALSE}
+summary(m)
+```
+
+As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that, we can interpret the coefficients of categorical variables in a sense that when the variable is changed from 0 (reference level) to 1, the value of log(price) will change by an amount of $\beta$. For example, the variable "lrgfont" has a coefficient 9.040e-01. This means that if we change "lrgfont" from 0 to 1 (ie. if the dealer devotes an additional paragraph), then on average, the log(price) will increase by 9.040e-01, which in turn translates to an increase of $e^{9.040e-01}=2.479359$ livres. For continuous variable, such as "Surface", the coefficient represent that for every 1 unit increase in predictor, we expect the price to change by an amount of $\beta$. For example, the variable "Surface" has a coefficient of 3.740e-04. That is, for every 1-unit increase in "Surface", we will have on average an increase in price by $e^{3.740e-04} = 1$ livres.    
 
 
-#Some interactions
+###Model selection
+
+Since we are given a dataset with 59 variables (including 'price' and 'log(pirce)'), a model that includes all of them will be too complicated and run into the risk of overfitting. Therefore, we decide to do model selection by removing some variables that may not help our prediction. We carry out the model selection by four steps: recoding, general analysis, BIC, and interaction.
+
+To begin with, we decide to recode some variables to better represent their respective features. Besides the recode of 'shape_recode' provided by Professor, we also generate some recode variables: 'mat_recode', 'fig_mention', 'artist_living_notliving', 'history_nohistory', 'mytho_nomytho', 'finished_nofinished', and 'LF'. In particular, in 'mat_recode', we recode "a" (silver), "bc" (wood and copper), "c" (copper),"br" (bronze frames) into "metal"; "al" (alabaster), "ar" (slate), "m" (marble) into "stone"; "co" (cloth), "bt" (canvas), "t" (canvas),"h" (oil technique),"ta" (canvas) into "canvas"; "p" (paper), "ca" (cardboard) into "paper"; "b" (wood) into "wood"; "o" (other), "e" (wax),"v" (glass),"mi" (miniature technique),"pa" (pastel),"g" (grissaille technique) into "other"; the rest into "uncertain". For the other recode variables, we use them as indicators of corresponding features (0 if the feature does not exist, and 1 if it does).
+
+After recoding, we remove some variables which we believe are not contributing to our model or are repetitive. After careful analysis, we decide to remove "sale", "lot", "position", "logprice", "subject", "authorstyle", "authorstandard", "author", "winningbidder", "Interm", "Height_in", "Width_in", "Surface_Rect", "Diam_in", "Surface_Rnd", "material", "mat", "lands_sc", "lands_elem", "lands_figs", and "lands_ment". In particular, we remove "sale" because it is a combination of dealer and year, both of which we have included in our raw model. We remove "lot" and "position" because they are identifiers of paintings, which we believe are not helpful in linear modeling. We remove "logprice" because we can just take log(price). We remove "subject" because it is descriptive, and even though we may be able to use some Natural Language Processing (NLP) knowledge to understand this feature better, this is out of the scope of our current task. We remove "authorstyle" because this variable contains too many n/a, which itself has no meaning (sometimes, a value is missing for some particular reason, but in this case we do not think so), and we have very few method to interpret these n/a values. We remove both "authorstandard" and "author" because they contain too many layers; while they could be useful predictors if studied carefully (paintings associated with certain authors may be more expensive than others), we decide to drop them as we do not have sufficient information about each of them. We remove "winningbidder" because its information is conveyed by "winningbiddertype". We remove "Interm" for the same reason as previous one. We remove "Height_in", "Width_in", "Surface_Rect", "Diam_in", and "Surface_Rnd" because their information can be conveyed by "Surface". Similarly, we remove "material", "mat", "lands_sc", "lands_elem", "lands_figs" becasue their information can be conveyed by "mat_recode" and "landsALL", respectively.
+
+After all of the preparation, we run AIC and BIC analysis on our raw model, which includes all the variables remaining. In the end, we decide to use BIC analysis, and use the final model generated from BIC analysis as our first step to understand the dataset using linear models. The model obtained after BIC analysis is as follow:
+
+"log(price) ~ dealer + year + school_pntg + diff_origin + artistliving + winningbiddertype + Surface + nfigures + engraved + prevcoll + othartist + paired + finished + lrgfont + othgenre + discauth"
+
+After this, as we use the model obtained from BIC analysis to study the dataset, we slowly remove some of the variables, such as "othartist" and "nfigures", which we believe do not contribute much in our model. Later on, we also study the interaction effect between the predictors ("winningbiddertype:prevcoll"). We even go back to our initial model and manage to find an important interaction term between a predictor and a variable that seems insignificant on its own (Surface:mat_recode). Eventually, we finalize our model as follow:
+
+"log(price) ~ dealer + year + school_pntg + diff_origin + artistliving + winningbiddertype + Surface + engraved + prevcoll + paired + finished + lrgfont + othgenre + discauth + winningbiddertype:prevcoll + Surface:mat_recode"
+
+###Residual  
+
+```{r, echo=FALSE,warning=FALSE}
+par(mfrow = c(2, 2))
+plot(m)
+par(mfrow = c(1, 1))
+```
+
+As we observe from the residual plots, we see a straight horizontal line, around which there is a patternless cloud of points. This shows that the independence assumption of linear model is well followed.
+
+\newpage
+
+###Table of coefficients and CI
+
+```{r, echo=FALSE}
+ci <- confint(m, level = 0.95)
+table_coef <- as.data.frame(cbind(getElement(summary(m), "coefficients")[,"Estimate"],
+                                  ci[complete.cases(ci[,"2.5 %"]),]))
+colnames(table_coef)[1] <- "Estimate"
+kable(table_coef, digits = 2)
+```
+
+\newpage
+
+#4. Conclusion and Summary
+
+Based on the summary, in order to compute the (median) price for the "baseline" category, we set all factors to its reference level, while taking the median of individual continuous variables, and multiply them by their corresponding coefficients. Then, we take exponential to get from "log(price)" to "price".  
+
+```{r, echo=FALSE}
+(median_price <- exp(-1.510e+02 + 3.740e-04 * median(newTrain$Surface) + 8.684e-02 * median(newTrain$year)))
+```
+
+From our summary, one of the important findings we would like to highlight is that "dealer" and "winningbiddertype" affect the price the most, as they have the largest estimate. This is expected, because different dealers may have the price differently, or even may have different sources of painting to sell, thus resulting in different price ranges (ie. some dealers may have sources of highly-sought paintings, whereas other dealers may just have normal paintings). The same reasoning applies to "winningbiddertype" as well. When a dealer on behalf of collector is buying a painting, he will definitely have a different ulterior agenda in mind from, say, a buy himself. 
+
+One of the potential limitations about our model is that we may not be able to consider every single possible combination of interation terms. In fact, as we analyze the dataset, we only consider interaction between two variables. However, interactions can occur even with multiple variables, and our model does not consider EVERY SINGLE of these potentially significant multiple interactions.
+
+According to our summary, we believe that interactions are important. In our model, the most important variables are "finished", "prevcoll" and "lrgfont". To interpret how they influence the (median) price, we go back to previous section and obtain the confidence interval of coeffcients for both "dealer" and "winningbiddertype". Then, we take exponential of it so as to get from "log(price)" to "price".
+
+(a). "finished"
+```{r,echo=FALSE}
+exp(ci["finished",])
+```
+
+The price of paintings noted for their highly polished finishing is 1.558386 to 2.360873 times of that of paintings not noted for their highly polished finishing. 
+
+(b). "precvoll"
+```{r,echo=FALSE}
+exp(ci["prevcoll",])
+```
+
+The price of paintings whose previous owner is mentioned is 1.014806 to 4.553613 times of that of paintings whose previous owner is not mentioned.
+
+(c). "lrgfont"
+```{r,echo=FALSE}
+exp(ci["lrgfont",])
+```
+
+The price of paintings to which the dealer devotes an additional paragraph (in large font) is 1.906738 to 3.198521 times of that of paintings to which the dealer does not do so. 
