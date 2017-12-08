@@ -87,7 +87,7 @@ m1 <- lm(log(price) ~ . + lrgfont:winningbiddertype +
            lrgfont:Surface + winningbiddertype:dealer + winningbiddertype:year +
            winningbiddertype:diff_origin + winningbiddertype:Surface +
            dealer:year + dealer:diff_origin + dealer:Surface +
-           year:diff_origin + year:Surface + diff_origin:Surface,dat=newTrain)
+           year:diff_origin + year:Surface + diff_origin:Surface +lrgfont:landsALL +lrgfont:finished,dat=newTrain)
 #summary(m1)
 #plot(m1,ask=FALSE)
 
@@ -133,21 +133,21 @@ summary(best_BIC)
 
 #anova(m)
 
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#      winningbiddertype + Surface + nfigures + engraved + 
-#      prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-#      dealer + landsALL:paired + dealer:prevcoll + 
-#      winningbiddertype:prevcoll + winningbiddertype:artistliving, data = newTrain)
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+      winningbiddertype + Surface + nfigures + engraved + 
+     prevcoll + paired + finished + lrgfont + othgenre + discauth + 
+     dealer + landsALL:paired + dealer:prevcoll + 
+      winningbiddertype:prevcoll + winningbiddertype:artistliving+lrgfont:finished +lrgfont:landsALL, data = newTrain)
 
 #m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
 #    artistliving + winningbiddertype + Surface + nfigures + engraved + 
 #    prevcoll + paired + finished + lrgfont + othgenre + discauth + 
 #    dealer:year, data = newTrain)
 
-m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + winningbiddertype + Surface + nfigures + engraved + 
-        prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-        dealer:year+lrgfont:finished +lrgfont:landsALL, data = newTrain)
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + nfigures + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre + discauth + 
+#dealer:year+lrgfont:finished +lrgfont:landsALL, data = newTrain)
 
 ```
 
