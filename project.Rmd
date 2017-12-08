@@ -227,7 +227,7 @@ summary(best_BIC)
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #        discauth + school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove  winningbiddertype:prevcoll 
 
-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+m<- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
         discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin
