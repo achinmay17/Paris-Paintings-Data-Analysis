@@ -241,10 +241,16 @@ summary(best_BIC)
 #       artistliving + winningbiddertype + Surface +  engraved + 
 #       prevcoll +  paired + finished + lrgfont + othgenre + 
 #        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL + #winningbiddertype:prevcoll, data = newTrain) #diff_origin lrglandsall winprevcoll schedule for test 1:50 1284 195, coverage 92
+
+#m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#       discauth +  school_pntg:Surface, data = newTrain) #remove surface:mat_recode to be confirmed 1:55 1406.98
+
 m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
-       discauth +  school_pntg:Surface, data = newTrain) #remove surface:mat_recode
+       discauth +  Surface:mat_recode, data = newTrain) #remove school_pntg:Surface confirm at 2:00
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
