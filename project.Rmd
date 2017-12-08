@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: "project"
 author: "KangCheng Lin"
