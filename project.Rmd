@@ -193,11 +193,10 @@ summary(best_BIC)
 #        school_pntg:Surface + Surface:mat_recode, data = newTrain)
 
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + winningbiddertype + Surface + nfigures + engraved + 
-        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-        discauth + LF + landsALL:paired + dealer:prevcoll + 
-        winningbiddertype:prevcoll + 
-        school_pntg:Surface + Surface:mat_recode, data = newTrain)
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre + 
+        discauth + LF +  winningbiddertype:prevcoll + 
+        Surface:mat_recode, data = newTrain)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -280,55 +279,24 @@ To begin with, we decide to recode some variables to better represent their resp
 
 After recoding, we remove some variables which we believe are not contributing to our model or are repetitive. After careful analysis, we decide to remove "sale", "lot", "position", "logprice", "subject", "authorstyle", "authorstandard", "author", "winningbidder", "Interm", "Height_in", "Width_in", "Surface_Rect", "Diam_in", "Surface_Rnd", "material", "mat", "lands_sc", "lands_elem", "lands_figs", and "lands_ment". In particular, we remove "sale" because it is a combination of dealer and year, both of which we have included in our raw model. We remove "lot" and "position" because they are identifiers of paintings, which we believe are not helpful in linear modeling. We remove "logprice" because we can just take log(price). We remove "subject" because it is descriptive, and even though we may be able to use some Natural Language Processing (NLP) knowledge to understand this feature better, this is out of the scope of our current task. We remove "authorstyle" because this variable contains too many n/a, which itself has no meaning (sometimes, a value is missing for some particular reason, but in this case we do not think so), and we have very few method to interpret these n/a values. We remove both "authorstandard" and "author" because they contain too many layers; while they could be useful predictors if studied carefully (paintings associated with certain authors may be more expensive than others), we decide to drop them as we do not have sufficient information about each of them. We remove "winningbidder" because its information is conveyed by "winningbiddertype". We remove "Interm" for the same reason as previous one. We remove "Height_in", "Width_in", "Surface_Rect", "Diam_in", and "Surface_Rnd" because their information can be conveyed by "Surface". Similarly, we remove "material", "mat", "lands_sc", "lands_elem", "lands_figs" becasue their information can be conveyed by "mat_recode" and "landsALL", respectively.
 
-After all of the preparation, we run AIC and BIC analysis on our raw model, which includes all the variables remaining. 
+After all of the preparation, we run AIC and BIC analysis on our raw model, which includes all the variables remaining. In the end, we decide to use BIC analysis, and use the final model generated from BIC analysis as our first step to understand the dataset using linear models.
 
-```{r,eval=FALSE}
-#Professor's recoding
-train <- train %>%
-  mutate(shape_recode = ifelse(Shape == "", "Not Available",
-                               ifelse(Shape == "ovale", "oval",
-                                      ifelse(Shape == "ronde", "round",
-                                             ifelse(Shape == "octogon", "octagon", Shape)))))
-
-#recode
-train <- train %>%
-  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
-                      ifelse(mat %in% c("al", "ar", "m"), "stone",
-                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
-                      ifelse(mat %in% c("p", "ca"), "paper",
-                      ifelse(mat %in% c("b"), "wood",
-                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
-                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
-
-train <- train%>%
-  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
-
-train <- train%>%
-  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
-
-train <- train%>%
-  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
-
-train <- train%>%
-  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
-
-train <- train%>%
-  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
-
-train <- train%>%
-  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
-
-#remove completely descriptive (thus irrelevant) variables
-newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
-                                        "authorstyle","authorstandard","author",
-                                        "winningbidder",
-                                        "Interm","Height_in","Width_in","Surface_Rect",
-                                        "Diam_in","Surface_Rnd","material","mat",
-                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
-
-```
 
 * Residual: must include residual plot(s) and a discussion.  
 
+```{r, echo=FALSE}
+par(mfrow = c(2, 2))
+plot(m)
+par(mfrow = c(1, 1))
+```
+
 * Variables: must include table of coefficients and CI
+
+```{r, echo=FALSE}
+ci <- confint(m, level = 0.95)
+table_coef <- as.data.frame(cbind(getElement(summary(m), "coefficients")[,"Estimate"],
+                                  ci[complete.cases(ci[,"2.5 %"]),]))
+colnames(table_coef)[1] <- "Estimate"
+kable(table_coef, digits = 2)
+```
 
