@@ -90,8 +90,8 @@ levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
 levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
 
 #centering
-newTrain$year <- newTrain$year - mean(newTrain$year)
-newTrain$Surface <- newTrain$Surface - mean(newTrain$Surface)
+#newTrain$year <- newTrain$year - mean(newTrain$year)
+#newTrain$Surface <- newTrain$Surface - mean(newTrain$Surface)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -161,8 +161,8 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "O
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
 
 #centering
-newTest$year <- newTest$year - mean(newTest$year)
-newTest$Surface <- newTest$Surface - mean(newTest$Surface)
+#newTest$year <- newTest$year - mean(newTest$year)
+#newTest$Surface <- newTest$Surface - mean(newTest$Surface)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -308,4 +308,8 @@ summary(m)
 
 Based on the summary, the intercept is 3.159 livres. This means that when every categorical variable is at its reference level, and continuous 
 
-From our summary, it seems that 
+From our summary, it seems that dealer and winningbiddertype affect the price the most, as they have the largest estimate. This is expected, because different dealers may have the price differently, or even may have different sources of painting to sell, thus resulting in different price ranges (ie. some dealers may have sources of highly-sought paintings, whereas other dealers may just have normal paintings). The same reasoning applies to "winningbiddertype" as well. When a dealer on behalf of collector is buying a painting, he will definitely have a different ulterior agenda in mind from, say, a buy himself. 
+
+One of the potential limitations about our model is that we may not be able to consider every single possible combination of interation terms. In fact, as we analyze the dataset, we only consider interaction between two variables. However, interactions can occur even with multiple variables, and our model does not consider EVERY SINGLE of these potentially significant multiple interactions.
+
+According to our summary, we believe that 
