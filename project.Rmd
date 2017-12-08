@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 title: "project"
 author: "KangCheng Lin"
@@ -6,27 +5,22 @@ date: "December 3, 2017"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###loading libraries
-```{r}
-library(ggplot2)
-library(GGally)
-library(dplyr)
-library(purrr)
+suppressWarnings(library(dplyr))
+suppressWarnings(library(purrr))
+suppressWarnings(library(knitr))
 ```
 
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###loading dataset
-```{r}
 load("paintings_train.Rdata")
 train <- paintings_train
-
 ```
 
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###select variables
-```{r}
+
 #Professor's recoding
 train <- train %>%
   mutate(shape_recode = ifelse(Shape == "", "Not Available",
@@ -60,7 +54,7 @@ train <- train%>%
   mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
 
 train <- train%>%
-  mutate(LF = ifelse(finished==0, "no LF", "LF"))
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
@@ -78,7 +72,6 @@ newTrain$price <- as.numeric(gsub(",","",newTrain$price))
 
 #NA
 which(apply(newTrain,2,anyNA) == TRUE)
-sum(is.na(newTrain$Surface))/nrow(newTrain)
 
 #remove NA
 newTrain <- newTrain[complete.cases(newTrain$Surface),]
@@ -95,88 +88,8 @@ levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
 levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
 ```
 
-###interaction
-```{r}
-#landsALL:paired
-#dealer:prevcoll
-#winningbiddertype:prevcoll
-#winningbiddertype:artistliving
-
-#lrgfont:landsALL
-#lrgfont:finished
-#on 1437
-```
-
-###raw analysis (w/o interactions)
-```{r}
-#logging price
-m1 <- lm(log(price) ~ .,dat=newTrain)
-#summary(m1)
-#plot(m1,ask=FALSE)
-
-#anova
-#anova(m1)
-```
-
-###AIC
-```{r}
-#best_AIC <- step(m1,direction = "both",k=2)
-#summary(best_AIC)
-```
-
-###BIC
-```{r}
-best_BIC <- step(m1,direction = "both",k=log(nrow(newTrain)))
-summary(best_BIC)
-```
-
-###Testing Push
-```{r}
-#m <- lm(formula = log(price) ~ (dealer + year + school_pntg + diff_origin + 
-#    artistliving + winningbiddertype + Surface + nfigures + engraved + 
-#    prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-#    discauth)^2, data = newTrain)
-
-
-#anova(m)
-
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#    winningbiddertype + Surface + nfigures + engraved + 
-#    prevcoll + paired + finished + lrgfont + othgenre + 
-#    discauth + landsALL:paired + 
-#    dealer:prevcoll + winningbiddertype:prevcoll + 
-#    winningbiddertype:artistliving, data = newTrain)
-
-#anova(m)
-
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#    artistliving + winningbiddertype + Surface + nfigures + engraved + 
-#    prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-#    dealer:year, data = newTrain)
-
-#anova(m)
-
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#      winningbiddertype + Surface + nfigures + engraved + 
-#      prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-#      dealer + landsALL:paired + dealer:prevcoll + 
-#      winningbiddertype:prevcoll + winningbiddertype:artistliving, data = newTrain)
-
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#    artistliving + winningbiddertype + Surface + nfigures + engraved + 
-#    prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-#    dealer:year, data = newTrain)
-
-m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + winningbiddertype + Surface + nfigures + engraved + 
-        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-        discauth + landsALL:paired + dealer:prevcoll + 
-        winningbiddertype:prevcoll + winningbiddertype:artistliving +
-        school_pntg:Surface + Surface:mat_recode, data = newTrain)
-```
-
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###testing dataset
-```{r}
 load("paintings_test.Rdata")
 test <- paintings_test
 
@@ -206,7 +119,7 @@ test <- test%>%
   mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
 
 test <- test%>%
-  mutate(LF = ifelse(finished==0, "no LF", "LF"))
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
 
 
 #Professor's recoding
@@ -240,9 +153,178 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "O
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
 ```
 
-```{r}
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###interaction
+
+#landsALL:paired
+#dealer:prevcoll
+#winningbiddertype:prevcoll
+#winningbiddertype:artistliving
+
+#lrgfont:landsALL
+#lrgfont:finished
+#on 1437
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+#initial model with logging price
+m1 <- lm(log(price) ~ .,dat=newTrain)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###AIC
+best_AIC <- step(m1,direction = "both",k=2)
+summary(best_AIC)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###BIC
+best_BIC <- step(m1,direction = "both",k=log(nrow(newTrain)))
+summary(best_BIC)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###Testing Push
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + nfigures + engraved + 
+#        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
+#        discauth + landsALL:paired + dealer:prevcoll + 
+#        winningbiddertype:prevcoll + winningbiddertype:artistliving +
+#        school_pntg:Surface + Surface:mat_recode, data = newTrain)
+
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + nfigures + engraved + 
+        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
+        discauth + LF + landsALL:paired + dealer:prevcoll + 
+        winningbiddertype:prevcoll + 
+        school_pntg:Surface + Surface:mat_recode, data = newTrain)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest, 
               interval = "pred")))
 save(predictions, file="predict-test.Rdata")
 ```
+
+### Part I Write up *Due Dec 7*
+
+Once you are satisfied with your model, provide a write up of your data analysis project in a new Rmd file/pdf file: `Part-I-Writeup.Rmd` by copying over salient parts of your R notebook. The written assignment consists of five parts:
+
+1. Introduction: Summary of problem and objectives (5 points)
+
+2. Exploratory data analysis (10 points): must include three correctly labeled graphs and an explanation that highlight the most important features that went into your model building.
+
+3. Development and assessment of an initial model (10 points)
+
+* Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
+
+* Model selection: must include a discussion
+
+* Residual: must include residual plot(s) and a discussion.  
+
+* Variables: must include table of coefficients and CI
+
+3. Summary and Conclusions (10 points)
+
+What is the (median) price for the "baseline" category if there are categorical or dummy variables in the model (add CI's)?  (be sure to include units!) Highlight important findings and potential limitations of your model.  Does it appear that interactions are important?  What are the most important variables and/or interactions?  Provide interprations of how the most important variables influence the (median) price giving a range (CI).  Correct interpretation of coefficients for the log model desirable for full points.
+
+Provide recommendations for the art historian about features or combination of features to look for to find the most valuable paintings.
+
+_Points will be deducted for code chunks that should not be included, etc._
+
+*Upload write up  to Sakai*
+
+#Introduction: 
+
+#Summary of Problem: 
+We are given a dataset which provides information about auctions of paintings which were sold between years 1764 and 1780. The data tells us about different attributes of paintings, information about auction, information about the artist, information about the buyer and the price at which it was sold. There are total 59 columns (variables) in data including 'price' and 'log(price)'. Our task is to find out the relation between variables and the price so that we can predict the price of a paintings. We should also interpret the results as which are the most/least influential factor in determining the price of the painting. 
+
+Objectives:
+1) Exploratory data analysis
+2) Find out interaction
+3) Create a model with 10-20 most influential factors and interpret results
+4) Test the model with test data and interpret the results 
+
+
+#Exploratory Data Analysis
+
+#Variables which we think are not importanat in predicting the price
+1) sale - We have sepater variables for dealer code and year
+2) materialCat- 
+3) subject- Too many levels in a simple model 
+4) authorstandard- Too many variable in a simple model
+5) authorstyle - n/a for most of the values
+6) winningbidder- Too many variable in a simple model
+7) surface_rect- We have separate variable for 'surface' and 'shape'
+8) surface_rnd- We have separate variable for 'surface' and 'shape'
+
+
+# Some Graphs and analysis
+1)  
+
+
+#Development and assessment of an initial model (10 points)
+
+* Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
+
+```{r,eval=FALSE}
+summary(m1)
+```
+
+* Model selection: must include a discussion
+
+Since we are given a dataset with 59 variables (including 'price' and 'log(pirce)'), a model that includes all of them will be too complicated and run into the risk of overfitting. Therefore, we decide to do model selection by removing some variables that may not help our prediction. We carry out the model selection by four steps: recoding, general analysis, BIC, and interaction.
+
+To begin with, we decide to recode some variables to better represent their respective features. Besides the recode of 'shape_recode' provided by Professor, we also recode variables 'mat_recode', 'fig_mention', 'artist_living_notliving', 'history_nohistory', 'mytho_nomytho', 'finished_nofinished 
+
+```{r,eval=FALSE}
+#Professor's recoding
+train <- train %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+
+#recode
+train <- train %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+train <- train%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+train <- train%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+train <- train%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+train <- train%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+train <- train%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+train <- train%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+#remove completely descriptive (thus irrelevant) variables
+newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+```
+
+* Residual: must include residual plot(s) and a discussion.  
+
+* Variables: must include table of coefficients and CI
+
