@@ -161,8 +161,8 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "O
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
 
 #centering
-newTest$year <- scale(newTest$year, center = TRUE, scale = TRUE)
-newTest$Surface <- scale(newTest$Surface, center = TRUE, scale = TRUE)
+newTest$year <- scale(newTest$year, center = TRUE, scale = FALSE)
+newTest$Surface <- scale(newTest$Surface, center = TRUE, scale = FALSE)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -312,4 +312,4 @@ From our summary, it seems that dealer and winningbiddertype affect the price th
 
 One of the potential limitations about our model is that we may not be able to consider every single possible combination of interation terms. In fact, as we analyze the dataset, we only consider interaction between two variables. However, interactions can occur even with multiple variables, and our model does not consider EVERY SINGLE of these potentially significant multiple interactions.
 
-According to our summary, we believe that 
+According to our summary, we believe that interactions are important. In our model, the most important variable 
