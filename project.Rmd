@@ -200,13 +200,20 @@ summary(best_BIC)
 #        winningbiddertype:prevcoll + 
 #        school_pntg:Surface + Surface:mat_recode, data = newTrain) 1311
 
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth + landsALL:paired + dealer:prevcoll + 
+#        winningbiddertype:prevcoll + winningbiddertype:artistliving +
+#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #deleting ** and * diff_origin other nfigures
+
+
 m <- lm(formula = log(price) ~ dealer + year + school_pntg +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth + landsALL:paired + dealer:prevcoll + 
-        winningbiddertype:prevcoll + winningbiddertype:artistliving +
-        school_pntg:Surface + Surface:mat_recode, data = newTrain) #deleting ** and * diff_origin other nfigures
-
+        discauth +  dealer:prevcoll + 
+        winningbiddertype:prevcoll +
+        school_pntg:Surface + Surface:mat_recode, data = newTrain)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
