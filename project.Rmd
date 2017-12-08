@@ -208,12 +208,19 @@ summary(best_BIC)
 #        school_pntg:Surface + Surface:mat_recode, data = newTrain) #deleting ** and * diff_origin other nfigures
 
 
-m <- lm(formula = log(price) ~ dealer + year + school_pntg +
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth +  dealer:prevcoll + 
+#        winningbiddertype:prevcoll +
+#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove landsALL:paired
+
+lm(formula = log(price) ~ dealer + year + school_pntg +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth +  dealer:prevcoll + 
+        discauth +   
         winningbiddertype:prevcoll +
-        school_pntg:Surface + Surface:mat_recode, data = newTrain)
+        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove dealer:prevcoll
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
