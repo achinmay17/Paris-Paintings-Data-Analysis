@@ -155,19 +155,6 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
-###interaction
-
-#landsALL:paired
-#dealer:prevcoll
-#winningbiddertype:prevcoll
-#winningbiddertype:artistliving
-
-#lrgfont:landsALL
-#lrgfont:finished
-#on 1437
-```
-
-```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 #initial model with logging price
 m1 <- lm(log(price) ~ .,dat=newTrain)
 ```
@@ -195,7 +182,7 @@ summary(best_BIC)
 
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
-        prevcoll + paired + finished + lrgfont + othgenre + 
+        prevcoll + paired + finished + lrgfont + othgenre + mat_recode + 
         discauth + winningbiddertype:prevcoll + 
         Surface:mat_recode, data = newTrain)
 ```
@@ -280,8 +267,13 @@ To begin with, we decide to recode some variables to better represent their resp
 
 After recoding, we remove some variables which we believe are not contributing to our model or are repetitive. After careful analysis, we decide to remove "sale", "lot", "position", "logprice", "subject", "authorstyle", "authorstandard", "author", "winningbidder", "Interm", "Height_in", "Width_in", "Surface_Rect", "Diam_in", "Surface_Rnd", "material", "mat", "lands_sc", "lands_elem", "lands_figs", and "lands_ment". In particular, we remove "sale" because it is a combination of dealer and year, both of which we have included in our raw model. We remove "lot" and "position" because they are identifiers of paintings, which we believe are not helpful in linear modeling. We remove "logprice" because we can just take log(price). We remove "subject" because it is descriptive, and even though we may be able to use some Natural Language Processing (NLP) knowledge to understand this feature better, this is out of the scope of our current task. We remove "authorstyle" because this variable contains too many n/a, which itself has no meaning (sometimes, a value is missing for some particular reason, but in this case we do not think so), and we have very few method to interpret these n/a values. We remove both "authorstandard" and "author" because they contain too many layers; while they could be useful predictors if studied carefully (paintings associated with certain authors may be more expensive than others), we decide to drop them as we do not have sufficient information about each of them. We remove "winningbidder" because its information is conveyed by "winningbiddertype". We remove "Interm" for the same reason as previous one. We remove "Height_in", "Width_in", "Surface_Rect", "Diam_in", and "Surface_Rnd" because their information can be conveyed by "Surface". Similarly, we remove "material", "mat", "lands_sc", "lands_elem", "lands_figs" becasue their information can be conveyed by "mat_recode" and "landsALL", respectively.
 
-After all of the preparation, we run AIC and BIC analysis on our raw model, which includes all the variables remaining. In the end, we decide to use BIC analysis, and use the final model generated from BIC analysis as our first step to understand the dataset using linear models.
+After all of the preparation, we run AIC and BIC analysis on our raw model, which includes all the variables remaining. In the end, we decide to use BIC analysis, and use the final model generated from BIC analysis as our first step to understand the dataset using linear models. The model obtained after BIC analysis is as follow:
 
+"log(price) ~ dealer + year + school_pntg + diff_origin + artistliving + winningbiddertype + Surface + nfigures + engraved + prevcoll + othartist + paired + finished + lrgfont + othgenre + discauth"
+
+After this, as we use the model obtained from BIC analysis to study the dataset, we slowly remove some of the variables, such as "othartist" and "nfigures", which we believe do not contribute much in our model. Later on, we also study the interaction effect between the predictors ("winningbiddertype:prevcoll"). We even go back to our initial model and manage to find an important interaction term between a predictor and a variable that seems insignificant on its own (Surface:mat_recode) . 
+
+"log(price) ~ dealer + year + school_pntg + diff_origin + artistliving + winningbiddertype + Surface + engraved + prevcoll + paired + finished + lrgfont + othgenre + discauth + winningbiddertype:prevcoll + Surface:mat_recode"
 
 * Residual: must include residual plot(s) and a discussion.  
 
