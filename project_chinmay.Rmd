@@ -68,7 +68,7 @@ train <- train %>%
                       ifelse(mat %in% c("p", "ca"), "paper",
                       ifelse(mat %in% c("b"), "wood",
                       ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
-                      ifelse(mat %in% c("n/a", ""), NA,"uncertain"))))))))
+                      ifelse(mat %in% c("n/a", ""),"uncertain",NA))))))))
 
 #train <- subset(train, select = -c(mat))
 ```
