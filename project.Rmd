@@ -213,21 +213,24 @@ summary(best_BIC)
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #        discauth +  dealer:prevcoll + 
 #        winningbiddertype:prevcoll +
-#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove landsALL:paired
+#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove landsALL:paired nothing changes 1303
 
 #lm(formula = log(price) ~ dealer + year + school_pntg +
 #        artistliving + winningbiddertype + Surface +  engraved + 
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #        discauth +   
 #        winningbiddertype:prevcoll +
-#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove dealer:prevcoll
+#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove dealer:prevcoll 1292
 
-lm(formula = log(price) ~ dealer + year + school_pntg +
+#lm(formula = log(price) ~ dealer + year + school_pntg +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth + school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove  winningbiddertype:prevcoll 
+
+lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth +   
-        
-        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove winningbiddertype:prevcoll 
+        discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
