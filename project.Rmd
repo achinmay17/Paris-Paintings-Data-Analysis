@@ -59,6 +59,9 @@ train <- train%>%
 train <- train%>%
   mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
 
+#change price into numeric
+train$price <- as.numeric(gsub(",","",train$price))
+
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
                                         "authorstyle","authorstandard","author",
@@ -66,12 +69,6 @@ newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subj
                                         "Interm","Height_in","Width_in","Surface_Rect",
                                         "Diam_in","Surface_Rnd","material","mat",
                                         "lands_sc","lands_elem","lands_figs","lands_ment")]
-
-#put price as the first column
-newTrain <- newTrain[,c(7,1:6,8:46)]
-
-#change price into numeric
-newTrain$price <- as.numeric(gsub(",","",newTrain$price))
 
 #NA
 which(apply(newTrain,2,anyNA) == TRUE)
@@ -193,7 +190,7 @@ save(predictions, file="predict-test.Rdata")
 ```
 
 
-#Introduction: 
+#1. Introduction: 
 
 #Summary of Problem: 
 We are given a dataset which provides information about auctions of paintings which were sold between years 1764 and 1780. The data tells us about different attributes of paintings, information about auction, information about the artist, information about the buyer and the price at which it was sold. There are total 59 columns (variables) in data including 'price' and 'log(price)'. Our task is to find out the relation between variables and the price so that we can predict the price of a paintings. We should also interpret the results as which are the most/least influential factor in determining the price of the painting. 
@@ -204,19 +201,7 @@ Objectives:
 3) Create a model with 10-20 most influential factors and interpret results
 4) Test the model with test data and interpret the results 
 
-
-#Exploratory Data Analysis
-
-#Variables which we think are not importanat in predicting the price
-1) sale - We have sepater variables for dealer code and year
-2) materialCat- 
-3) subject- Too many levels in a simple model 
-4) authorstandard- Too many variable in a simple model
-5) authorstyle - n/a for most of the values
-6) winningbidder- Too many variable in a simple model
-7) surface_rect- We have separate variable for 'surface' and 'shape'
-8) surface_rnd- We have separate variable for 'surface' and 'shape'
-
+#2. Exploratory Data Analysis
 
 # Some Graphs and analysis
 
@@ -271,15 +256,15 @@ p4 <- ggplot (data= train, aes (y = price, x =  artist_living_notliving, col = a
   scale_y_log10()
 
 p5<-ggplot(data = train, aes(x = year, y = logprice)) + geom_point() + stat_smooth(method = "lm")
-m1 <- lm(logprice ~ year, data = train)
+m1 <- lm(log(price) ~ year, data = train)
 s2 <- summary(m1)
 
 p6<-ggplot(data = train, aes(x = Surface, y = logprice)) + geom_point() + stat_smooth(method = "lm")
-m1 <- lm(logprice ~ Surface, data = train)
+m1 <- lm(log(price) ~ Surface, data = train)
 s1<-summary(m1)
 
 p11 <-ggplot(data = train, aes(x = nfigures, y = logprice)) + geom_point() + stat_smooth(method = "lm")
-m1 <- lm(logprice ~ nfigures, data = train)
+m1 <- lm(log(price) ~ nfigures, data = train)
 
 p7<-ggplot (data= train, aes (y = price, x =  finished_nofinished, col = finished_nofinished))+
   geom_boxplot() +
@@ -299,18 +284,18 @@ p10 <- ggplot (data= train, aes (y = price, x =  LF, col = LF))+
 ```
 
 
-```{r,echo=FALSE}
+```{r,echo=FALSE,warning=FALSE}
 #boxplots
-multiplot(p2,p3, p4,p7,p8,p9,p10, cols=2)
+multiplot(p2,p3,p4,p7,p8,p9,p10, cols=2)
 ```
 
-```{r,echo=FALSE}
+```{r,echo=FALSE,warning=FALSE}
 multiplot(p6, p5, cols=2)
-s1
-s2
 ```
 
-#Development and assessment of an initial model (10 points)
+\newpage
+
+#3. Development and assessment of an initial model (10 points)
 
 * Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
 
@@ -318,7 +303,7 @@ s2
 summary(m)
 ```
 
-As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that, we can interpret the coefficients of categorical variables in a sense that when the variable is changed from 0 (reference level) to 1, the value of log(price) will change by an amount of $\beta$. For example, the variable "lrgfont" has a coefficient 9.040e-01. This means that if we change "lrgfont" from 0 to 1 (ie. if the dealer devotes an additional paragraph), then on average, the log(price) will increase by 9.040e-01, which in turn translates to an increase of $\exp^{9.040e-01}=2.479359$ livres. For continuous variable, such as "Surface", the coefficient represent that for every 1 unit increase in predictor, we expect the price to change by an amount of $\beta$. For example, the variable "Surface" has a coefficient of 3.740e-04. That is, for every 1-unit increase in "Surface", we will have on average an increase in price by $\exp^{3.740e-04} = 1$ livres.    
+As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that, we can interpret the coefficients of categorical variables in a sense that when the variable is changed from 0 (reference level) to 1, the value of log(price) will change by an amount of $\beta$. For example, the variable "lrgfont" has a coefficient 9.040e-01. This means that if we change "lrgfont" from 0 to 1 (ie. if the dealer devotes an additional paragraph), then on average, the log(price) will increase by 9.040e-01, which in turn translates to an increase of $e^{9.040e-01}=2.479359$ livres. For continuous variable, such as "Surface", the coefficient represent that for every 1 unit increase in predictor, we expect the price to change by an amount of $\beta$. For example, the variable "Surface" has a coefficient of 3.740e-04. That is, for every 1-unit increase in "Surface", we will have on average an increase in price by $e^{3.740e-04} = 1$ livres.    
 
 
 ###Model selection
@@ -339,13 +324,15 @@ After this, as we use the model obtained from BIC analysis to study the dataset,
 
 ###Residual  
 
-```{r, echo=FALSE}
+```{r, echo=FALSE,warning=FALSE}
 par(mfrow = c(2, 2))
 plot(m)
 par(mfrow = c(1, 1))
 ```
 
 As we observe from the residual plots, we see a straight horizontal line, around which there is a patternless cloud of points. This shows that the independence assumption of linear model is well followed.
+
+\newpage
 
 ###Table of coefficients and CI
 
@@ -357,7 +344,9 @@ colnames(table_coef)[1] <- "Estimate"
 kable(table_coef, digits = 2)
 ```
 
-#Conclusion and Summary
+\newpage
+
+#4. Conclusion and Summary
 
 Based on the summary, in order to compute the (median) price for the "baseline" category, we set all factors to its reference level, while taking the median of individual continuous variables, and multiply them by their corresponding coefficients. Then, we take exponential to get from "log(price)" to "price".  
 
@@ -365,8 +354,29 @@ Based on the summary, in order to compute the (median) price for the "baseline" 
 (median_price <- exp(-1.510e+02 + 3.740e-04 * median(newTrain$Surface) + 8.684e-02 * median(newTrain$year)))
 ```
 
-From our summary, it seems that dealer and winningbiddertype affect the price the most, as they have the largest estimate. This is expected, because different dealers may have the price differently, or even may have different sources of painting to sell, thus resulting in different price ranges (ie. some dealers may have sources of highly-sought paintings, whereas other dealers may just have normal paintings). The same reasoning applies to "winningbiddertype" as well. When a dealer on behalf of collector is buying a painting, he will definitely have a different ulterior agenda in mind from, say, a buy himself. 
+From our summary, one of the important findings we would like to highlight is that "dealer" and "winningbiddertype" affect the price the most, as they have the largest estimate. This is expected, because different dealers may have the price differently, or even may have different sources of painting to sell, thus resulting in different price ranges (ie. some dealers may have sources of highly-sought paintings, whereas other dealers may just have normal paintings). The same reasoning applies to "winningbiddertype" as well. When a dealer on behalf of collector is buying a painting, he will definitely have a different ulterior agenda in mind from, say, a buy himself. 
 
 One of the potential limitations about our model is that we may not be able to consider every single possible combination of interation terms. In fact, as we analyze the dataset, we only consider interaction between two variables. However, interactions can occur even with multiple variables, and our model does not consider EVERY SINGLE of these potentially significant multiple interactions.
 
-According to our summary, we believe that interactions are important. In our model, the most important variables are "dealer" and "winningbiddertype", which have been explained above. 
+According to our summary, we believe that interactions are important. In our model, the most important variables are "finished", "prevcoll" and "lrgfont". To interpret how they influence the (median) price, we go back to previous section and obtain the confidence interval of coeffcients for both "dealer" and "winningbiddertype". Then, we take exponential of it so as to get from "log(price)" to "price".
+
+(a). "finished"
+```{r,echo=FALSE}
+exp(ci["finished",])
+```
+
+The price of paintings noted for their highly polished finishing is 1.558386 to 2.360873 times of that of paintings not noted for their highly polished finishing. 
+
+(b). "precvoll"
+```{r,echo=FALSE}
+exp(ci["prevcoll",])
+```
+
+The price of paintings whose previous owner is mentioned is 1.014806 to 4.553613 times of that of paintings whose previous owner is not mentioned.
+
+(c). "lrgfont"
+```{r,echo=FALSE}
+exp(ci["lrgfont",])
+```
+
+The price of paintings to which the dealer devotes an additional paragraph (in large font) is 1.906738 to 3.198521 times of that of paintings to which the dealer does not do so. 
