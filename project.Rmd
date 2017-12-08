@@ -1,6 +1,6 @@
 ---
 title: "project"
-author: "KangCheng Lin"
+author: "Team Omega"
 date: "December 3, 2017"
 output: pdf_document
 ---
@@ -185,6 +185,8 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth + winningbiddertype:prevcoll + 
         Surface:mat_recode, data = newTrain)
+
+
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -259,7 +261,7 @@ Objectives:
 summary(m1)
 ```
 
-* Model selection: must include a discussion
+###Model selection
 
 Since we are given a dataset with 59 variables (including 'price' and 'log(pirce)'), a model that includes all of them will be too complicated and run into the risk of overfitting. Therefore, we decide to do model selection by removing some variables that may not help our prediction. We carry out the model selection by four steps: recoding, general analysis, BIC, and interaction.
 
@@ -271,11 +273,11 @@ After all of the preparation, we run AIC and BIC analysis on our raw model, whic
 
 "log(price) ~ dealer + year + school_pntg + diff_origin + artistliving + winningbiddertype + Surface + nfigures + engraved + prevcoll + othartist + paired + finished + lrgfont + othgenre + discauth"
 
-After this, as we use the model obtained from BIC analysis to study the dataset, we slowly remove some of the variables, such as "othartist" and "nfigures", which we believe do not contribute much in our model. Later on, we also study the interaction effect between the predictors ("winningbiddertype:prevcoll"). We even go back to our initial model and manage to find an important interaction term between a predictor and a variable that seems insignificant on its own (Surface:mat_recode) . 
+After this, as we use the model obtained from BIC analysis to study the dataset, we slowly remove some of the variables, such as "othartist" and "nfigures", which we believe do not contribute much in our model. Later on, we also study the interaction effect between the predictors ("winningbiddertype:prevcoll"). We even go back to our initial model and manage to find an important interaction term between a predictor and a variable that seems insignificant on its own (Surface:mat_recode). Eventually, we finalize our model as follow:
 
 "log(price) ~ dealer + year + school_pntg + diff_origin + artistliving + winningbiddertype + Surface + engraved + prevcoll + paired + finished + lrgfont + othgenre + discauth + winningbiddertype:prevcoll + Surface:mat_recode"
 
-* Residual: must include residual plot(s) and a discussion.  
+###Residual  
 
 ```{r, echo=FALSE}
 par(mfrow = c(2, 2))
@@ -283,7 +285,9 @@ plot(m)
 par(mfrow = c(1, 1))
 ```
 
-* Variables: must include table of coefficients and CI
+As we observe from the residual plots, we see a straight horizontal line, around which there is a patternless cloud of points. This shows that the independence assumption of linear model is well followed.
+
+###Table of coefficients and CI
 
 ```{r, echo=FALSE}
 ci <- confint(m, level = 0.95)
