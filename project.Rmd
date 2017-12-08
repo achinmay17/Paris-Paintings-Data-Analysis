@@ -235,7 +235,7 @@ summary(best_BIC)
 m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
        artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL, data = newTrain) #+ lrgfont:landsALL
+        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL, data = newTrain) #+ lrgfont:landsALL waiting for score next in line 1:35.
 
 ```
 
