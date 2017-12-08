@@ -90,8 +90,8 @@ levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
 levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
 
 #centering
-#newTrain$year <- newTrain$year - mean(newTrain$year)
-#newTrain$Surface <- newTrain$Surface - mean(newTrain$Surface)
+newTrain$year <- scale(newTrain$year, center = TRUE, scale = TRUE)
+newTrain$Surface <- scale(newTrain$Surface, center = TRUE, scale = TRUE)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -161,8 +161,8 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "O
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
 
 #centering
-#newTest$year <- newTest$year - mean(newTest$year)
-#newTest$Surface <- newTest$Surface - mean(newTest$Surface)
+newTestn$year <- scale(newTest$year, center = TRUE, scale = TRUE)
+newTest$Surface <- scale(newTest$Surface, center = TRUE, scale = TRUE)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
