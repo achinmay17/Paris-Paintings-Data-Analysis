@@ -161,7 +161,7 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "O
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
 
 #centering
-newTestn$year <- scale(newTest$year, center = TRUE, scale = TRUE)
+newTest$year <- scale(newTest$year, center = TRUE, scale = TRUE)
 newTest$Surface <- scale(newTest$Surface, center = TRUE, scale = TRUE)
 ```
 
