@@ -247,10 +247,14 @@ summary(best_BIC)
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #       discauth +  school_pntg:Surface, data = newTrain) #remove surface:mat_recode to be confirmed 1:55 1406.98
 
+#m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#       discauth +  Surface:mat_recode, data = newTrain) #remove school_pntg:Surface confirm at 2:00 1275
 m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
-       discauth +  Surface:mat_recode, data = newTrain) #remove school_pntg:Surface confirm at 2:00
+        discauth + Surface:mat_recode +winningbiddertype:prevcoll, data = newTrain) #add winning bidder 
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
