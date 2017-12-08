@@ -22,6 +22,7 @@ library(purrr)
 ```{r}
 load("paintings_train.Rdata")
 train <- paintings_train
+
 ```
 
 ###select variables
@@ -100,6 +101,10 @@ levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <-
 #dealer:prevcoll
 #winningbiddertype:prevcoll
 #winningbiddertype:artistliving
+
+#lrgfont:landsALL
+#lrgfont:finished
+#on 1437
 ```
 
 ###raw analysis (w/o interactions)
