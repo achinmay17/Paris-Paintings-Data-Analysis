@@ -54,7 +54,7 @@ train <- train%>%
   mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
 
 train <- train%>%
-  mutate(LF = ifelse(finished==0, "no LF", "LF"))
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
@@ -119,7 +119,7 @@ test <- test%>%
   mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
 
 test <- test%>%
-  mutate(LF = ifelse(finished==0, "no LF", "LF"))
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
 
 
 #Professor's recoding
@@ -195,7 +195,7 @@ summary(best_BIC)
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + nfigures + engraved + 
         prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-        discauth + landsALL:paired + dealer:prevcoll + 
+        discauth + LF + landsALL:paired + dealer:prevcoll + 
         winningbiddertype:prevcoll + 
         school_pntg:Surface + Surface:mat_recode, data = newTrain)
 ```
@@ -274,7 +274,9 @@ summary(m1)
 
 * Model selection: must include a discussion
 
-Since we are given a dataset with 59 variables (including 'price' and 'log(pirce)'), a model that includes all of them will be too complicated and run into the risk of overfitting. Therefore, we decide to do model selection by removing some variables that may not help our prediction. We carry out the model selection by four steps: recoding,  
+Since we are given a dataset with 59 variables (including 'price' and 'log(pirce)'), a model that includes all of them will be too complicated and run into the risk of overfitting. Therefore, we decide to do model selection by removing some variables that may not help our prediction. We carry out the model selection by four steps: recoding, general analysis, BIC, and interaction.
+
+To begin with, we decide to recode some variables to better represent their respective features. Besides the recode of 'shape_recode' provided by Professor, we also recode variables 'mat_recode', 'fig_mention', 'artist_living_notliving', 'history_nohistory', 'mytho_nomytho', 'finished_nofinished 
 
 ```{r,eval=FALSE}
 #Professor's recoding
@@ -310,7 +312,7 @@ train <- train%>%
   mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
 
 train <- train%>%
-  mutate(LF = ifelse(finished==0, "no LF", "LF"))
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
