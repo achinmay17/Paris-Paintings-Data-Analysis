@@ -62,15 +62,15 @@ train <- subset(train, select = -c(Shape))
 2) We will create another variable 'mat_recode' to reode materials
 ```{r}
 train <- train %>%
-  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c"), "metal",
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
                       ifelse(mat %in% c("al", "ar", "m"), "stone",
-                      ifelse(mat %in% c("co", "bt", "t"), "canvas",
+                      ifelse(mat %in% c("co", "bt", "t","h"), "canvas",
                       ifelse(mat %in% c("p", "ca"), "paper",
                       ifelse(mat %in% c("b"), "wood",
-                      ifelse(mat %in% c("o", "e","v"), "other",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
                       ifelse(mat %in% c("n/a", ""), NA,"uncertain"))))))))
 
-train <- subset(train, select = -c(mat))
+#train <- subset(train, select = -c(mat))
 ```
 
 3)Fixing Prices

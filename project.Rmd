@@ -30,7 +30,35 @@ train <- train %>%
   mutate(shape_recode = ifelse(Shape == "", "Not Available",
                                ifelse(Shape == "ovale", "oval",
                                       ifelse(Shape == "ronde", "round",
-                                             ifelse(Shape == "octogon", "round", Shape)))))
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+
+#recode
+train <- train %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+train <- train%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+train <- train%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+train <- train%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+train <- train%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+train <- train%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+train <- train%>%
+  mutate(LF = ifelse(finished==0, "no LF", "LF"))
 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
@@ -41,7 +69,7 @@ newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subj
                                         "lands_sc","lands_elem","lands_figs","lands_ment")]
 
 #put price as the first column
-newTrain <- newTrain[,c(7,1:6,8:39)]
+newTrain <- newTrain[,c(7,1:6,8:46)]
 
 #change price into numeric
 newTrain$price <- as.numeric(gsub(",","",newTrain$price))
@@ -71,23 +99,12 @@ levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <-
 #dealer:prevcoll
 #winningbiddertype:prevcoll
 #winningbiddertype:artistliving
-
-#change price into numeric
-#train$price <- as.numeric(gsub(",","",train$price))
-
-#summary(train$price)
-#train$authorstandard[train$price > 10000]
 ```
 
 ###raw analysis (w/o interactions)
 ```{r}
 #logging price
-m1 <- lm(log(price) ~ . + lrgfont:winningbiddertype + 
-           lrgfont:dealer + lrgfont:year + lrgfont:diff_origin +
-           lrgfont:Surface + winningbiddertype:dealer + winningbiddertype:year +
-           winningbiddertype:diff_origin + winningbiddertype:Surface +
-           dealer:year + dealer:diff_origin + dealer:Surface +
-           year:diff_origin + year:Surface + diff_origin:Surface,dat=newTrain)
+m1 <- lm(log(price) ~ .,dat=newTrain)
 #summary(m1)
 #plot(m1,ask=FALSE)
 
@@ -146,8 +163,10 @@ summary(best_BIC)
 
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + nfigures + engraved + 
-        prevcoll + paired + finished + lrgfont + othgenre + discauth + 
-        dealer:year, data = newTrain)
+        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
+        discauth + landsALL:paired + dealer:prevcoll + 
+        winningbiddertype:prevcoll + winningbiddertype:artistliving +
+          school_pntg:Surface + Surface:mat_recode, data = newTrain)
 
 ```
 
@@ -156,12 +175,41 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
 load("paintings_test.Rdata")
 test <- paintings_test
 
+#recode
+test <- test %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+test <- test%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+test <- test%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+test <- test%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+test <- test%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+test <- test%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+test <- test%>%
+  mutate(LF = ifelse(finished==0, "no LF", "LF"))
+
+
 #Professor's recoding
 test <- test %>%
   mutate(shape_recode = ifelse(Shape == "", "Not Available",
                                ifelse(Shape == "ovale", "oval",
                                       ifelse(Shape == "ronde", "round",
-                                             ifelse(Shape == "octogon", "round", Shape)))))
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
 
 newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
                                         "authorstyle","authorstandard","author",                          "winningbidder","Interm","Height_in","Width_in","Surface_Rect","Diam_in","Surface_Rnd","material","mat",                            "lands_sc","lands_elem","lands_figs","lands_ment")]
