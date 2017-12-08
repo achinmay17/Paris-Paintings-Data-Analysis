@@ -227,15 +227,20 @@ summary(best_BIC)
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #        discauth + school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove  winningbiddertype:prevcoll 1292 waiting to be confirmed again 1304
 
-m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
-        artistliving + winningbiddertype + Surface +  engraved + 
-        prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin 1292 
+#m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin 1292 waiting to be confirmed 1:45 
 
 #m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
 #       artistliving + winningbiddertype + Surface +  engraved + 
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL, data = newTrain) #+ lrgfont:landsALL 1:35. 1289
+
+m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+       artistliving + winningbiddertype + Surface +  engraved + 
+       prevcoll +  paired + finished + lrgfont + othgenre + 
+        discauth +  school_pntg:Surface + Surface:mat_recode + lrgfont:landsALL + winningbiddertype:prevcoll, data = newTrain) #diff_origin lrglandsall winprevcoll
 
 ```
 
