@@ -251,10 +251,16 @@ summary(best_BIC)
 #        artistliving + winningbiddertype + Surface +  engraved + 
 #        prevcoll +  paired + finished + lrgfont + othgenre + 
 #       discauth +  Surface:mat_recode, data = newTrain) #remove school_pntg:Surface confirm at 2:00 1275
+#m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth + Surface:mat_recode +winningbiddertype:prevcoll, data = newTrain) #add winning bidder schedule to be confirm 2:05 1246 200 bias, 0.9275 14684
 m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         artistliving + winningbiddertype + Surface +  engraved + 
-        prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth + Surface:mat_recode +winningbiddertype:prevcoll, data = newTrain) #add winning bidder 
+        prevcoll +  paired + finished + lrgfont + othgenre + LF+
+        discauth + Surface:mat_recode +winningbiddertype:prevcoll, data = newTrain) #add LF
+
+
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
