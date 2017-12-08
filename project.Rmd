@@ -187,9 +187,8 @@ summary(best_BIC)
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + Surface:mat_recode, data = newTrain)
-
-#winningbiddertype:prevcoll +
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode, data = newTrain)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -303,3 +302,10 @@ What is the (median) price for the "baseline" category if there are categorical 
 
 Provide recommendations for the art historian about features or combination of features to look for to find the most valuable paintings.
 
+```{r}
+summary(m)
+```
+
+Based on the summary, the intercept is 3.159 livres. This means that when every categorical variable is at its reference level, and continuous 
+
+From our summary, it seems that 
