@@ -215,22 +215,22 @@ summary(best_BIC)
 #        winningbiddertype:prevcoll +
 #        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove landsALL:paired nothing changes 1303
 
-#lm(formula = log(price) ~ dealer + year + school_pntg +
-#        artistliving + winningbiddertype + Surface +  engraved + 
-#        prevcoll +  paired + finished + lrgfont + othgenre + 
-#        discauth +   
-#        winningbiddertype:prevcoll +
-#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove dealer:prevcoll 1292
-
-#lm(formula = log(price) ~ dealer + year + school_pntg +
-#        artistliving + winningbiddertype + Surface +  engraved + 
-#        prevcoll +  paired + finished + lrgfont + othgenre + 
-#        discauth + school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove  winningbiddertype:prevcoll 
-
-m<- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+m <- lm(formula = log(price) ~ dealer + year + school_pntg +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
-        discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin
+        discauth +   
+        winningbiddertype:prevcoll +
+        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove dealer:prevcoll 1292
+
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth + school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove  winningbiddertype:prevcoll 1292
+
+#m <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth +  school_pntg:Surface + Surface:mat_recode, data = newTrain) #+ diff_origin
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
