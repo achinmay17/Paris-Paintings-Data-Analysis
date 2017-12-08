@@ -187,7 +187,7 @@ summary(best_BIC)
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + 
+        discauth + winningbiddertype:prevcoll + Surface:school_pntg +
         Surface:mat_recode, data = newTrain)
 ```
 
@@ -263,7 +263,7 @@ Objectives:
 summary(m)
 ```
 
-As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that,  
+As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that, we can interpret the coefficients of categorical variables in a sense that when the variable is changed from 0 (reference level) to 1, the value of log(price) will change by an amount of $\beta$. For example, the variable "lrgfont" has a coefficient 9.080e-01. This means that if we change "lrgfont" from 0 to 1 (ie. if the dealer devotes an additional paragraph), then on average, the log(price) will increase by 9.080e-01, which in turn translates to an increase of $\exp^{9.080e-01}=2.479359$ livres. For continuous variable, such as "Surface", the coefficient represent that for every 1 unit increase in predictor, we expect the price to change by an amount of $\beta$. For example, the variable "Surface"     
 
 
 ###Model selection
