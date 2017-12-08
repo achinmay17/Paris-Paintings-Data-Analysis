@@ -187,8 +187,9 @@ summary(best_BIC)
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + Surface:school_pntg +
-        Surface:mat_recode, data = newTrain)
+        discauth + Surface:mat_recode, data = newTrain)
+
+#winningbiddertype:prevcoll +
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -200,12 +201,6 @@ save(predictions, file="predict-test.Rdata")
 
 ### Part I Write up *Due Dec 7*
 
-Once you are satisfied with your model, provide a write up of your data analysis project in a new Rmd file/pdf file: `Part-I-Writeup.Rmd` by copying over salient parts of your R notebook. The written assignment consists of five parts:
-
-1. Introduction: Summary of problem and objectives (5 points)
-
-2. Exploratory data analysis (10 points): must include three correctly labeled graphs and an explanation that highlight the most important features that went into your model building.
-
 3. Development and assessment of an initial model (10 points)
 
 * Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
@@ -216,7 +211,7 @@ Once you are satisfied with your model, provide a write up of your data analysis
 
 * Variables: must include table of coefficients and CI
 
-3. Summary and Conclusions (10 points)
+4. Summary and Conclusions (10 points)
 
 What is the (median) price for the "baseline" category if there are categorical or dummy variables in the model (add CI's)?  (be sure to include units!) Highlight important findings and potential limitations of your model.  Does it appear that interactions are important?  What are the most important variables and/or interactions?  Provide interprations of how the most important variables influence the (median) price giving a range (CI).  Correct interpretation of coefficients for the log model desirable for full points.
 
@@ -301,4 +296,10 @@ table_coef <- as.data.frame(cbind(getElement(summary(m), "coefficients")[,"Estim
 colnames(table_coef)[1] <- "Estimate"
 kable(table_coef, digits = 2)
 ```
+
+4. Summary and Conclusions (10 points)
+
+What is the (median) price for the "baseline" category if there are categorical or dummy variables in the model (add CI's)?  (be sure to include units!) Highlight important findings and potential limitations of your model.  Does it appear that interactions are important?  What are the most important variables and/or interactions?  Provide interprations of how the most important variables influence the (median) price giving a range (CI).  Correct interpretation of coefficients for the log model desirable for full points.
+
+Provide recommendations for the art historian about features or combination of features to look for to find the most valuable paintings.
 
