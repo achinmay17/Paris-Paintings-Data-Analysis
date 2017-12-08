@@ -169,6 +169,7 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 #initial model with logging price
 m1 <- lm(log(price) ~ .,dat=newTrain)
+summary(m1)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -192,12 +193,20 @@ summary(best_BIC)
 #        winningbiddertype:prevcoll + winningbiddertype:artistliving +
 #        school_pntg:Surface + Surface:mat_recode, data = newTrain)
 
-m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + winningbiddertype + Surface + nfigures + engraved + 
-        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-        discauth + LF + landsALL:paired + dealer:prevcoll + 
-        winningbiddertype:prevcoll + 
-        school_pntg:Surface + Surface:mat_recode, data = newTrain)
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + nfigures + engraved + 
+#        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
+#        discauth + LF + landsALL:paired + dealer:prevcoll + 
+#        winningbiddertype:prevcoll + 
+#        school_pntg:Surface + Surface:mat_recode, data = newTrain) 1311
+
+m <- lm(formula = log(price) ~ dealer + year + school_pntg +
+        artistliving + winningbiddertype + Surface +  engraved + 
+        prevcoll +  paired + finished + lrgfont + othgenre + 
+        discauth + landsALL:paired + dealer:prevcoll + 
+        winningbiddertype:prevcoll + winningbiddertype:artistliving +
+        school_pntg:Surface + Surface:mat_recode, data = newTrain) #deleting ** and * diff_origin other nfigures
+
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
