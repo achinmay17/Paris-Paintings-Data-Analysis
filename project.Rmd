@@ -81,12 +81,17 @@ newTrain <- newTrain[complete.cases(newTrain$Surface),]
 character_vars <- lapply(newTrain, class) == "character"
 newTrain[, character_vars] <- lapply(newTrain[, character_vars], as.factor)
 
+#change the level of factor
 levels(newTrain$type_intermed)[levels(newTrain$type_intermed)==""] <- "NONE"
 levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)==""] <- "NONE"
 levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
 levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
 levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
 levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
+
+#centering
+newTrain$year <- newTrain$year - mean(newTrain$year)
+newTrain$Surface <- newTrain$Surface - mean(newTrain$Surface)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -141,6 +146,7 @@ newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject
 character_vars <- lapply(newTest, class) == "character"
 newTest[, character_vars] <- lapply(newTest[, character_vars], as.factor)
 
+#change the level of factors
 levels(newTest$type_intermed)[levels(newTest$type_intermed)==""] <- "NONE"
 levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)==""] <- "NONE"
 levels(newTest$endbuyer)[levels(newTest$endbuyer)==""] <- "NONE"
@@ -151,7 +157,12 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="EBC"] <- "
 levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="BB"] <- "OTHER"
 levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "OTHER"
 
+#simple method to predict the NA in surface
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
+
+#centering
+newTest$year <- newTest$year - mean(newTest$year)
+newTest$Surface <- newTest$Surface - mean(newTest$Surface)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -173,20 +184,11 @@ summary(best_BIC)
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###Testing Push
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + nfigures + engraved + 
-#        prevcoll + othartist + paired + finished + lrgfont + othgenre + 
-#        discauth + landsALL:paired + dealer:prevcoll + 
-#        winningbiddertype:prevcoll + winningbiddertype:artistliving +
-#        school_pntg:Surface + Surface:mat_recode, data = newTrain)
-
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth + winningbiddertype:prevcoll + 
         Surface:mat_recode, data = newTrain)
-
-
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -258,8 +260,11 @@ Objectives:
 * Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
 
 ```{r,eval=FALSE}
-summary(m1)
+summary(m)
 ```
+
+As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that,  
+
 
 ###Model selection
 
