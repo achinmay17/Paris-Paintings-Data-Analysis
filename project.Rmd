@@ -114,8 +114,8 @@ m1 <- lm(log(price) ~ .,dat=newTrain)
 
 ###AIC
 ```{r}
-best_AIC <- step(m1,direction = "both",k=2)
-summary(best_AIC)
+#best_AIC <- step(m1,direction = "both",k=2)
+#summary(best_AIC)
 ```
 
 ###BIC
@@ -166,8 +166,7 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         prevcoll + othartist + paired + finished + lrgfont + othgenre + 
         discauth + landsALL:paired + dealer:prevcoll + 
         winningbiddertype:prevcoll + winningbiddertype:artistliving +
-          school_pntg:Surface + Surface:mat_recode, data = newTrain)
-
+        school_pntg:Surface + Surface:mat_recode, data = newTrain)
 ```
 
 ###testing dataset
@@ -212,7 +211,11 @@ test <- test %>%
                                              ifelse(Shape == "octogon", "octagon", Shape)))))
 
 newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
-                                        "authorstyle","authorstandard","author",                          "winningbidder","Interm","Height_in","Width_in","Surface_Rect","Diam_in","Surface_Rnd","material","mat",                            "lands_sc","lands_elem","lands_figs","lands_ment")]
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder", "price",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
 
 #change all character strings to factors
 character_vars <- lapply(newTest, class) == "character"
