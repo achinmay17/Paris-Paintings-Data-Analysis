@@ -215,12 +215,19 @@ summary(best_BIC)
 #        winningbiddertype:prevcoll +
 #        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove landsALL:paired
 
+#lm(formula = log(price) ~ dealer + year + school_pntg +
+#        artistliving + winningbiddertype + Surface +  engraved + 
+#        prevcoll +  paired + finished + lrgfont + othgenre + 
+#        discauth +   
+#        winningbiddertype:prevcoll +
+#        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove dealer:prevcoll
+
 lm(formula = log(price) ~ dealer + year + school_pntg +
         artistliving + winningbiddertype + Surface +  engraved + 
         prevcoll +  paired + finished + lrgfont + othgenre + 
         discauth +   
-        winningbiddertype:prevcoll +
-        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove dealer:prevcoll
+        
+        school_pntg:Surface + Surface:mat_recode, data = newTrain) #remove winningbiddertype:prevcoll 
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
