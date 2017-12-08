@@ -88,10 +88,6 @@ levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
 levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
 levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
 levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
-
-#centering
-newTrain$year <- scale(newTrain$year, center = TRUE, scale = TRUE)
-newTrain$Surface <- scale(newTrain$Surface, center = TRUE, scale = TRUE)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -159,10 +155,6 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "O
 
 #simple method to predict the NA in surface
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
-
-#centering
-newTest$year <- scale(newTest$year, center = TRUE, scale = FALSE)
-newTest$Surface <- scale(newTest$Surface, center = TRUE, scale = FALSE)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
