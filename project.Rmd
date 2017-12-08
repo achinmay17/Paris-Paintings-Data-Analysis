@@ -11,6 +11,8 @@ output: pdf_document
 suppressWarnings(library(dplyr))
 suppressWarnings(library(purrr))
 suppressWarnings(library(knitr))
+suppressWarnings(library(grid))
+suppressWarnings(library(ggplot2))
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -190,27 +192,6 @@ predictions = as.data.frame(
 save(predictions, file="predict-test.Rdata")
 ```
 
-### Part I Write up *Due Dec 7*
-
-3. Development and assessment of an initial model (10 points)
-
-* Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
-
-* Model selection: must include a discussion
-
-* Residual: must include residual plot(s) and a discussion.  
-
-* Variables: must include table of coefficients and CI
-
-4. Summary and Conclusions (10 points)
-
-What is the (median) price for the "baseline" category if there are categorical or dummy variables in the model (add CI's)?  (be sure to include units!) Highlight important findings and potential limitations of your model.  Does it appear that interactions are important?  What are the most important variables and/or interactions?  Provide interprations of how the most important variables influence the (median) price giving a range (CI).  Correct interpretation of coefficients for the log model desirable for full points.
-
-Provide recommendations for the art historian about features or combination of features to look for to find the most valuable paintings.
-
-_Points will be deducted for code chunks that should not be included, etc._
-
-*Upload write up  to Sakai*
 
 #Introduction: 
 
@@ -238,18 +219,106 @@ Objectives:
 
 
 # Some Graphs and analysis
-1)  
 
+```{r,echo=FALSE}
+#function to group multiple plots
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+#all the plots
+p2<- ggplot (data= train, aes (y = price, x = fig_mention, col = fig_mention))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p3<-ggplot (data= train, aes (y = price, x = mat_recode , col = mat_recode))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p4 <- ggplot (data= train, aes (y = price, x =  artist_living_notliving, col = artist_living_notliving))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p5<-ggplot(data = train, aes(x = year, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(logprice ~ year, data = train)
+s2 <- summary(m1)
+
+p6<-ggplot(data = train, aes(x = Surface, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(logprice ~ Surface, data = train)
+s1<-summary(m1)
+
+p11 <-ggplot(data = train, aes(x = nfigures, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(logprice ~ nfigures, data = train)
+
+p7<-ggplot (data= train, aes (y = price, x =  finished_nofinished, col = finished_nofinished))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p8<-ggplot (data= train, aes (y = price, x = mytho_nomytho , col = mytho_nomytho ))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p9<-ggplot (data= train, aes (y = price, x =  history_nohistory, col = history_nohistory))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p10 <- ggplot (data= train, aes (y = price, x =  LF, col = LF))+
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+
+```{r,echo=FALSE}
+#boxplots
+multiplot(p2,p3, p4,p7,p8,p9,p10, cols=2)
+```
+
+```{r,echo=FALSE}
+multiplot(p6, p5, cols=2)
+s1
+s2
+```
 
 #Development and assessment of an initial model (10 points)
 
 * Initial model: must include a summary table and an explanation/discussion for variable selection and overall amount of variation explained. 
 
-```{r,eval=FALSE}
+```{r,echo=FALSE}
 summary(m)
 ```
 
-As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that, we can interpret the coefficients of categorical variables in a sense that when the variable is changed from 0 (reference level) to 1, the value of log(price) will change by an amount of $\beta$. For example, the variable "lrgfont" has a coefficient 9.080e-01. This means that if we change "lrgfont" from 0 to 1 (ie. if the dealer devotes an additional paragraph), then on average, the log(price) will increase by 9.080e-01, which in turn translates to an increase of $\exp^{9.080e-01}=2.479359$ livres. For continuous variable, such as "Surface", the coefficient represent that for every 1 unit increase in predictor, we expect the price to change by an amount of $\beta$. For example, the variable "Surface"     
+As we observe from the summary, the first part we notice is that there are several NA values in some layers of our interaction terms, because the training dataset may not have data to back up the layer, thus generating NA values. After that, we can interpret the coefficients of categorical variables in a sense that when the variable is changed from 0 (reference level) to 1, the value of log(price) will change by an amount of $\beta$. For example, the variable "lrgfont" has a coefficient 9.040e-01. This means that if we change "lrgfont" from 0 to 1 (ie. if the dealer devotes an additional paragraph), then on average, the log(price) will increase by 9.040e-01, which in turn translates to an increase of $\exp^{9.040e-01}=2.479359$ livres. For continuous variable, such as "Surface", the coefficient represent that for every 1 unit increase in predictor, we expect the price to change by an amount of $\beta$. For example, the variable "Surface" has a coefficient of 3.740e-04. That is, for every 1-unit increase in "Surface", we will have on average an increase in price by $\exp^{3.740e-04} = 1$ livres.    
 
 
 ###Model selection
@@ -288,20 +357,16 @@ colnames(table_coef)[1] <- "Estimate"
 kable(table_coef, digits = 2)
 ```
 
-4. Summary and Conclusions (10 points)
+#Conclusion and Summary
 
-What is the (median) price for the "baseline" category if there are categorical or dummy variables in the model (add CI's)?  (be sure to include units!) Highlight important findings and potential limitations of your model.  Does it appear that interactions are important?  What are the most important variables and/or interactions?  Provide interprations of how the most important variables influence the (median) price giving a range (CI).  Correct interpretation of coefficients for the log model desirable for full points.
+Based on the summary, in order to compute the (median) price for the "baseline" category, we set all factors to its reference level, while taking the median of individual continuous variables, and multiply them by their corresponding coefficients. Then, we take exponential to get from "log(price)" to "price".  
 
-Provide recommendations for the art historian about features or combination of features to look for to find the most valuable paintings.
-
-```{r}
-summary(m)
+```{r, echo=FALSE}
+(median_price <- exp(-1.510e+02 + 3.740e-04 * median(newTrain$Surface) + 8.684e-02 * median(newTrain$year)))
 ```
-
-Based on the summary, the intercept is 3.159 livres. This means that when every categorical variable is at its reference level, and continuous 
 
 From our summary, it seems that dealer and winningbiddertype affect the price the most, as they have the largest estimate. This is expected, because different dealers may have the price differently, or even may have different sources of painting to sell, thus resulting in different price ranges (ie. some dealers may have sources of highly-sought paintings, whereas other dealers may just have normal paintings). The same reasoning applies to "winningbiddertype" as well. When a dealer on behalf of collector is buying a painting, he will definitely have a different ulterior agenda in mind from, say, a buy himself. 
 
 One of the potential limitations about our model is that we may not be able to consider every single possible combination of interation terms. In fact, as we analyze the dataset, we only consider interaction between two variables. However, interactions can occur even with multiple variables, and our model does not consider EVERY SINGLE of these potentially significant multiple interactions.
 
-According to our summary, we believe that interactions are important. In our model, the most important variable 
+According to our summary, we believe that interactions are important. In our model, the most important variables are "dealer" and "winningbiddertype", which have been explained above. 
