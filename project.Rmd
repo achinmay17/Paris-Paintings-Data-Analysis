@@ -205,6 +205,8 @@ Objectives:
 
 # Some Graphs and analysis
 
+Different plots are plotted to see the effect of diffent variables on price and some variables are selected based on the following graphs. 
+
 ```{r,echo=FALSE}
 #function to group multiple plots
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
@@ -301,7 +303,7 @@ multiplot(p6, p5, cols=2)
 1) 1) Surface:mat_recode
 Surface area and mat_recode (recoding of material) should have some interaction as different material is used fo paintings for different sizes of paintings. 
 
-```{r}
+```{r,echo=FALSE,warning=FALSE}
 p14 <-ggplot(data = train, aes(y = logprice, x= Surface, factor= mat_recode, color=factor(mat_recode))) + geom_point (alpha = 0.3) +
   geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
 m1 <- lm(logprice ~ Surface * factor(mat_recode), data = train)
@@ -312,7 +314,7 @@ summary(m1)
 2)school_pntg:Surface 
 School of painting and surface area of painting will definitely have some interaction as different style of paintings will use different figures and landscapes in them which will have diffeent sizes. For example, a portrtit will usuall have smaller surface area than a landscape whihc includees mountains and river.
 
-```{r}
+```{r,echo=FALSE,warning=FALSE}
 p15 <- ggplot(data = train, aes(y = logprice, x= Surface, factor= school_pntg, color=factor(school_pntg))) + geom_point (alpha = 0.3) +
   geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
 m1 <- lm(logprice ~ Surface + Surface * factor(school_pntg), data = train)
