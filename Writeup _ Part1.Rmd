@@ -182,7 +182,7 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         Surface:mat_recode, data = newTrain)
 ```
 
-```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest, 
               interval = "pred")))
@@ -196,14 +196,19 @@ save(predictions, file="predict-test.Rdata")
 We are given a dataset which provides information about auctions of paintings which were sold between years 1764 and 1780. The data tells us about different attributes of paintings, information about auction, information about the artist, information about the buyer and the price at which it was sold. There are total 59 columns (variables) in data including 'price' and 'log(price)'. Our task is to find out the relation between variables and the price so that we can predict the price of a paintings. We should also interpret the results as which are the most/least influential factor in determining the price of the painting. 
 
 Objectives:
+
 1) Exploratory data analysis
 2) Find out interaction
 3) Create a model with 10-20 most influential factors and interpret results
 4) Test the model with test data and interpret the results 
 
+\newpage
+
 #2. Exploratory Data Analysis
 
-# Some Graphs and analysis
+###Some Graphs and analysis
+
+The following is a group of boxplots that show the effect of different variables on price. Based on these boxplots, we observe that the mean of price differ between layers of categorical variables; the discrepancies are later on substantiated by hypothesis testing to be statistically significant. As a preliminary analysis, we decide to put them into our raw model before BIC analysis. It turns out that all but mat_recode are included in our final model. Even though mat_recode is not significant on its own, it proves to be a very interesting variable in interaction term. 
 
 ```{r,echo=FALSE}
 #function to group multiple plots
@@ -243,7 +248,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 }
 
 #all the plots
-p2<- ggplot (data= train, aes (y = price, x = fig_mention, col = fig_mention))+
+p2<- ggplot (data= train, aes (y = price, x = factor(dealer), col = factor(dealer)))+
   geom_boxplot() +
   scale_y_log10()
 
@@ -251,7 +256,7 @@ p3<-ggplot (data= train, aes (y = price, x = mat_recode , col = mat_recode))+
   geom_boxplot() +
   scale_y_log10()
 
-p4 <- ggplot (data= train, aes (y = price, x =  artist_living_notliving, col = artist_living_notliving))+
+p4 <- ggplot (data= train, aes (y = price, x =factor(school_pntg), col = factor(school_pntg)))+
   geom_boxplot() +
   scale_y_log10()
 
@@ -266,31 +271,64 @@ s1<-summary(m1)
 p11 <-ggplot(data = train, aes(x = nfigures, y = logprice)) + geom_point() + stat_smooth(method = "lm")
 m1 <- lm(log(price) ~ nfigures, data = train)
 
-p7<-ggplot (data= train, aes (y = price, x =  finished_nofinished, col = finished_nofinished))+
+p7<-ggplot (data= train, aes (y = price, x =factor(prevcoll), col = factor(prevcoll)))+
   geom_boxplot() +
   scale_y_log10()
 
-p8<-ggplot (data= train, aes (y = price, x = mytho_nomytho , col = mytho_nomytho ))+
+p8<-ggplot (data= train, aes (y = price, x = factor(lrgfont) , col = factor(lrgfont)))+
   geom_boxplot() +
   scale_y_log10()
 
-p9<-ggplot (data= train, aes (y = price, x =  history_nohistory, col = history_nohistory))+
+p9<-ggplot (data= train, aes (y = price, x = factor(engraved), col = factor(engraved)))+
   geom_boxplot() +
   scale_y_log10()
 
-p10 <- ggplot (data= train, aes (y = price, x =  LF, col = LF))+
+p10 <- ggplot (data= train, aes (y = price, x = factor(othgenre), col = factor(othgenre)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p13 <- ggplot (data= train, aes (y = price, x = factor(discauth), col = factor(discauth)))+
   geom_boxplot() +
   scale_y_log10()
 ```
-
 
 ```{r,echo=FALSE,warning=FALSE}
 #boxplots
-multiplot(p2,p3,p4,p7,p8,p9,p10, cols=2)
+multiplot(p2,p3,p4,p7,p8,p9,p10,p13, cols=2)
 ```
 
 ```{r,echo=FALSE,warning=FALSE}
-multiplot(p6, p5, cols=2)
+multiplot(p6, p5, cols=1)
+```
+
+###Interactions 
+
+(1). Surface:mat_recode
+
+Surface area and mat_recode (recoding of material) should have some interaction as different material is used fo paintings for different sizes of paintings. This is further supported as we observe significantly different slopes from layer to layer.
+
+```{r,echo=FALSE,warning=FALSE}
+p14 <-ggplot(data = train, aes(y = logprice, x= Surface, factor= mat_recode, color=factor(mat_recode))) + geom_point (alpha = 0.3) +
+  geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
+```
+
+
+(2). school_pntg:Surface 
+
+School of painting and surface area of painting will definitely have some interaction as different style of paintings will use different figures and landscapes in them which will have diffeent sizes. For example, a portrait will usually have smaller surface area than a landscape which includes mountains and rivers.
+
+```{r,echo=FALSE,warning=FALSE}
+p15 <- ggplot(data = train, aes(y = logprice, x= Surface, factor= school_pntg, color=factor(school_pntg))) + geom_point (alpha = 0.3) +
+  geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
+```
+
+
+(3). winningbiddertype:prevcoll 
+
+One of the motivating factors of purchasing a painting could be the name of previous owner of that painting. If bidders know that the previous owner of the painting was a well-known person, then they may be more willing to pay for a higher price. So we figure that 'winningbiddertype' and 'prevcoll' may have some interaction.
+
+```{r,echo=FALSE,warning=FALSE}
+multiplot(p14, p15, cols=1)
 ```
 
 \newpage
