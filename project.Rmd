@@ -182,7 +182,7 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         Surface:mat_recode, data = newTrain)
 ```
 
-```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest, 
               interval = "pred")))
@@ -243,7 +243,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 }
 
 #all the plots
-p2<- ggplot (data= train, aes (y = price, x = fig_mention, col = fig_mention))+
+p2<- ggplot (data= train, aes (y = price, x = factor(dealer), col = factor(dealer)))+
   geom_boxplot() +
   scale_y_log10()
 
@@ -251,7 +251,7 @@ p3<-ggplot (data= train, aes (y = price, x = mat_recode , col = mat_recode))+
   geom_boxplot() +
   scale_y_log10()
 
-p4 <- ggplot (data= train, aes (y = price, x =  artist_living_notliving, col = artist_living_notliving))+
+p4 <- ggplot (data= train, aes (y = price, x =factor(school_pntg), col = factor(school_pntg)))+
   geom_boxplot() +
   scale_y_log10()
 
@@ -266,19 +266,23 @@ s1<-summary(m1)
 p11 <-ggplot(data = train, aes(x = nfigures, y = logprice)) + geom_point() + stat_smooth(method = "lm")
 m1 <- lm(log(price) ~ nfigures, data = train)
 
-p7<-ggplot (data= train, aes (y = price, x =  finished_nofinished, col = finished_nofinished))+
+p7<-ggplot (data= train, aes (y = price, x =factor(prevcoll), col = factor(prevcoll)))+
   geom_boxplot() +
   scale_y_log10()
 
-p8<-ggplot (data= train, aes (y = price, x = mytho_nomytho , col = mytho_nomytho ))+
+p8<-ggplot (data= train, aes (y = price, x = factor(lrgfont) , col = factor(lrgfont)))+
   geom_boxplot() +
   scale_y_log10()
 
-p9<-ggplot (data= train, aes (y = price, x =  history_nohistory, col = history_nohistory))+
+p9<-ggplot (data= train, aes (y = price, x = factor(engraved), col = factor(engraved)))+
   geom_boxplot() +
   scale_y_log10()
 
-p10 <- ggplot (data= train, aes (y = price, x =  LF, col = LF))+
+p10 <- ggplot (data= train, aes (y = price, x = factor(othgenre), col = factor(othgenre)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p13 <- ggplot (data= train, aes (y = price, x = factor(discauth), col = factor(discauth)))+
   geom_boxplot() +
   scale_y_log10()
 ```
@@ -286,11 +290,43 @@ p10 <- ggplot (data= train, aes (y = price, x =  LF, col = LF))+
 
 ```{r,echo=FALSE,warning=FALSE}
 #boxplots
-multiplot(p2,p3,p4,p7,p8,p9,p10, cols=2)
+multiplot(p2,p3,p4,p7,p8,p9,p10,p13, cols=2)
 ```
 
 ```{r,echo=FALSE,warning=FALSE}
 multiplot(p6, p5, cols=2)
+```
+
+#Interactions 
+1) 1) Surface:mat_recode
+Surface area and mat_recode (recoding of material) should have some interaction as different material is used fo paintings for different sizes of paintings. 
+
+```{r}
+p14 <-ggplot(data = train, aes(y = logprice, x= Surface, factor= mat_recode, color=factor(mat_recode))) + geom_point (alpha = 0.3) +
+  geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
+m1 <- lm(logprice ~ Surface * factor(mat_recode), data = train)
+summary(m1)
+```
+
+
+2)school_pntg:Surface 
+School of painting and surface area of painting will definitely have some interaction as different style of paintings will use different figures and landscapes in them which will have diffeent sizes. For example, a portrtit will usuall have smaller surface area than a landscape whihc includees mountains and river.
+
+```{r}
+p15 <- ggplot(data = train, aes(y = logprice, x= Surface, factor= school_pntg, color=factor(school_pntg))) + geom_point (alpha = 0.3) +
+  geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
+m1 <- lm(logprice ~ Surface + Surface * factor(school_pntg), data = train)
+summary(m1)
+```
+
+
+3) winningbiddertype:prevcoll 
+One of the motivating factors of purchasing a painting could be a previous owner of that painting. If a bidder knows that previous owner of the painting was a well-known person then they would bid higher for the painting. So 'winningbiddertype' and 'prevcoll' should have some intercation as its a common practice to purchase paintings which was owned by some other person of choice previously. 
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+multiplot(p14, p15, cols=2)
 ```
 
 \newpage
