@@ -70,7 +70,30 @@ train <- train %>%
   mutate(famous_author = ifelse(authorstandard %in% 
                                   author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
 
-#Create new variable 
+#Create new variable "wb"
+wb_list <- train %>%
+  group_by(winningbiddertype) %>%
+  summarise(mean_price = mean(price)) %>%
+  ungroup() %>%
+  arrange(desc(mean_price))
+train <- train %>%
+  mutate(wb = ifelse(winningbiddertype %in% 
+                       wb_list$winningbiddertype[which(wb_list$mean_price >= 1000)],1,0))
+
+#create new variable "buyer_bino"
+buyer_list <- train %>%
+  group_by(endbuyer) %>%
+  summarise(mean_price = mean(price)) %>%
+  ungroup() %>%
+  arrange(desc(mean_price))
+train <- train %>%
+  mutate(buyer_bino = ifelse(endbuyer %in% 
+                       buyer_list$endbuyer[which(buyer_list$mean_price >= 1000)],1,0))
+
+  
+
+
+
 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
@@ -142,6 +165,29 @@ test <- test %>%
   mutate(famous_author = ifelse(authorstandard %in% 
                                   author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
 
+#Create new variable "wb"
+wb_list <- train %>%
+  group_by(winningbiddertype) %>%
+  summarise(mean_price = mean(price)) %>%
+  ungroup() %>%
+  arrange(desc(mean_price))
+train <- train %>%
+  mutate(wb = ifelse(winningbiddertype %in% 
+                       wb_list$winningbiddertype[which(wb_list$mean_price >= 1000)],1,0))
+  
+
+#create new variable "buyer_bino"
+buyer_list <- train %>%
+  group_by(endbuyer) %>%
+  summarise(mean_price = mean(price)) %>%
+  ungroup() %>%
+  arrange(desc(mean_price))
+train <- train %>%
+  mutate(buyer_bino = ifelse(endbuyer %in% 
+                       buyer_list$endbuyer[which(buyer_list$mean_price >= 1000)],1,0))
+
+
+
 #Professor's recoding
 test <- test %>%
   mutate(shape_recode = ifelse(Shape == "", "Not Available",
@@ -180,8 +226,8 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + famous_author + winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain)
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface , data = newTrain)
 ```
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
