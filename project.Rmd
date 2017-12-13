@@ -78,7 +78,7 @@ wb_list <- train %>%
   arrange(desc(mean_price))
 train <- train %>%
   mutate(wb = ifelse(winningbiddertype %in% 
-                       wb_list$winningbiddertype[which(wb_list$mean_price >= 2000)],1,0))
+                       wb_list$winningbiddertype[which(wb_list$mean_price >= 1000)],1,0))
 
 
 #create new variable "buyer_bino"
@@ -170,7 +170,7 @@ wb_list <- train %>%
   arrange(desc(mean_price))
 test <- test %>%
   mutate(wb = ifelse(winningbiddertype %in% 
-                       wb_list$winningbiddertype[which(wb_list$mean_price >= 2000)],1,0))
+                       wb_list$winningbiddertype[which(wb_list$mean_price >= 1000)],1,0))
   
 
 #create new variable "buyer_bino"
@@ -222,13 +222,16 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 
 #winningbiddertype removed due to potential collinearity with wb
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + Surface + engraved + 
+        artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + wb + buyer_bino + winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface , data = newTrain)
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface + wb:Surface + buyer_bino:Surface, data = newTrain)
+
+summary(m)
 ```
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
+
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest, 
               interval = "pred")))
