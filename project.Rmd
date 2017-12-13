@@ -70,6 +70,8 @@ train <- train %>%
   mutate(famous_author = ifelse(authorstandard %in% 
                                   author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
 
+#Create new variable 
+
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
                                         "authorstyle","authorstandard","author",
