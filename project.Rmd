@@ -182,9 +182,15 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         Surface:mat_recode + famous_author:Surface, data = newTrain)
 ```
 
+```{r}
+predictions <- cbind(predictions1, predictions)
+predictions <- predictions[-c(2)]
+
+```
+
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
-predictions = as.data.frame(
-  exp(predict(m, newdata=newTest, 
-              interval = "pred")))
+#predictions = as.data.frame(
+ # exp(predict(m, newdata=newTest, 
+ #             interval = "pred")))
 save(predictions, file="predict-test.Rdata")
 ```
