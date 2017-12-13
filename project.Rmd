@@ -68,7 +68,7 @@ author_price <- train %>%
   arrange(desc(mean_price))
 train <- train %>% 
   mutate(famous_author = ifelse(authorstandard %in% 
-                                  author_price$authorstandard[which(author_price$mean_price >= 2000)],1,0))
+                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
 
 #Create new variable "wb"
 wb_list <- train %>%
@@ -163,7 +163,7 @@ author_price <- train %>%
   arrange(desc(mean_price))
 test <- test %>% 
   mutate(famous_author = ifelse(authorstandard %in% 
-                                  author_price$authorstandard[which(author_price$mean_price >= 2000)],1,0))
+                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
 
 #Create new variable "wb"
 wb_list <- train %>%
@@ -171,7 +171,7 @@ wb_list <- train %>%
   summarise(mean_price = mean(price)) %>%
   ungroup() %>%
   arrange(desc(mean_price))
-train <- train %>%
+test <- test %>%
   mutate(wb = ifelse(winningbiddertype %in% 
                        wb_list$winningbiddertype[which(wb_list$mean_price >= 1000)],1,0))
   
@@ -182,7 +182,7 @@ buyer_list <- train %>%
   summarise(mean_price = mean(price)) %>%
   ungroup() %>%
   arrange(desc(mean_price))
-train <- train %>%
+test <- test %>%
   mutate(buyer_bino = ifelse(endbuyer %in% 
                        buyer_list$endbuyer[which(buyer_list$mean_price >= 1000)],1,0))
 
@@ -226,7 +226,7 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + 
+        discauth + wb + winningbiddertype:prevcoll + 
         Surface:mat_recode + famous_author:Surface , data = newTrain)
 ```
 
