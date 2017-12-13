@@ -5,12 +5,12 @@ output: html_document
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###loading libraries
-
 suppressWarnings(library(dplyr))
 suppressWarnings(library(purrr))
 suppressWarnings(library(knitr))
 suppressWarnings(library(grid))
 suppressWarnings(library(ggplot2))
+suppressWarnings(library(elasticnet))
 suppressWarnings(library(gbm))
 ```
 
@@ -182,19 +182,47 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #        discauth + winningbiddertype:prevcoll + 
 #        Surface:mat_recode + famous_author:Surface, data = newTrain)
 
-#boosting
-m = gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#lasso
+#library(glmnet)
+#library(caret)
+#library(ISLR)
+#lambda.grid <- 10^seq(2,-2,length=100)
+#alpha.grid <- seq(0,1,length=10)
+#trnCtrl <- trainControl(
+#  method = "repeatedCV",
+#  number=10,
+#  repeats=5
+#)
+#srchGrd <- expand.grid(.alpha=alpha.grid, .lambda=lambda.grid)
+#my.train <- train(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth + winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,
+#        method = "glmnet",
+#        tuneGrid = srchGrd,
+#        trControl = trnCtrl,
+#        standardize = FALSE,
+#        maxit=1000000)
+#
+#plot(my.train)
+#my.train$bestTune
+#m <- my.train$finalModel
+#my.train$bestTune$lambda
+
+library(h2o)
+
+m <- gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth + winningbiddertype:prevcoll + 
         Surface:mat_recode + famous_author:Surface, data = newTrain,
-        distribution = "gaussian", n.trees=5000,interaction.depth = 4)
-
+        distribution="gaussian",n.trees=20000,interaction.depth=2)
 ```
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest, 
-              interval = "pred",n.trees = 5000)))
+              interval = "predict",type="link",n.trees=20000)))
 save(predictions, file="predict-test.Rdata")
 ```
