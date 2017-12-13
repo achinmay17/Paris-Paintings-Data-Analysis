@@ -163,7 +163,7 @@ author_price <- train %>%
   arrange(desc(mean_price))
 test <- test %>% 
   mutate(famous_author = ifelse(authorstandard %in% 
-                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+                                  author_price$authorstandard[which(author_price$mean_price >= 2500)],1,0))
 
 #Create new variable "wb"
 wb_list <- train %>%
