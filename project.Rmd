@@ -226,7 +226,7 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + wb + winningbiddertype:prevcoll + 
+        discauth + wb + buyer_bino + winningbiddertype:prevcoll + 
         Surface:mat_recode + famous_author:Surface , data = newTrain)
 ```
 
