@@ -229,7 +229,7 @@ interval <- pred.interval(m,95)
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest)))
 
-
+colnames(predictions) <- "fit"
 save(predictions, file="predict-test.Rdata")
 #,               interval = "pred",n.trees = 5000
 ```
