@@ -201,7 +201,7 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #        artistliving + winningbiddertype + Surface + engraved + 
 #        prevcoll + paired + finished + lrgfont + othgenre +  
 #        discauth+ mat_recode + famous_author, data = newTrain,mtry=5,
-#        ntree=15000) #1490
+#        ntree=15000) #1490 increasing the number of trees only improves by 8
 
 
 #m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
@@ -211,11 +211,18 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #        ntree=15000) #to be confirmed at 6:30 1522
 
 
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5,
+#        ntree=15000) #confrimed at 6:35 add back interaction.
+
 m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth+ winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5,
+        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
         ntree=15000)
 ```
 
