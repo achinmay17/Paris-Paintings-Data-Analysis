@@ -180,33 +180,11 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth + winningbiddertype:prevcoll + 
         Surface:mat_recode + famous_author:Surface, data = newTrain)
-
-library(h2o)
-
-m1 <- gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + winningbiddertype + Surface + engraved + 
-        prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain,
-        distribution="gaussian",n.trees=20000,interaction.depth=2)
 ```
-
-```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
-predictions1 = as.data.frame(
-  exp(predict(m1, newdata=newTest, 
-              interval = "predict",type="link",n.trees=20000)))
-#save(predictions, file="predict-test.Rdata")
-```
-
-
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest, 
               interval = "pred")))
-
-predictions <- cbind(predictions1, predictions)
-predictions <- predictions[-c(2)]
-
 save(predictions, file="predict-test.Rdata")
 ```
