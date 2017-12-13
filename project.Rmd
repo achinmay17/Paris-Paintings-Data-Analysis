@@ -80,6 +80,7 @@ train <- train %>%
   mutate(wb = ifelse(winningbiddertype %in% 
                        wb_list$winningbiddertype[which(wb_list$mean_price >= 2000)],1,0))
 
+
 #create new variable "buyer_bino"
 buyer_list <- train %>%
   group_by(endbuyer) %>%
@@ -88,11 +89,7 @@ buyer_list <- train %>%
   arrange(desc(mean_price))
 train <- train %>%
   mutate(buyer_bino = ifelse(endbuyer %in% 
-                       buyer_list$endbuyer[which(buyer_list$mean_price >= 2000)],1,0))
-
-  
-
-
+                       buyer_list$endbuyer[which(buyer_list$mean_price >= 1000)],1,0))
 
 
 #remove completely descriptive (thus irrelevant) variables
@@ -184,8 +181,7 @@ buyer_list <- train %>%
   arrange(desc(mean_price))
 test <- test %>%
   mutate(buyer_bino = ifelse(endbuyer %in% 
-                       buyer_list$endbuyer[which(buyer_list$mean_price >= 2000)],1,0))
-
+                       buyer_list$endbuyer[which(buyer_list$mean_price >= 1000)],1,0))
 
 
 #Professor's recoding
@@ -223,8 +219,10 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###Testing Push
+
+#winningbiddertype removed due to potential collinearity with wb
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + winningbiddertype + Surface + engraved + 
+        artistliving + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth + wb + buyer_bino + winningbiddertype:prevcoll + 
         Surface:mat_recode + famous_author:Surface , data = newTrain)
