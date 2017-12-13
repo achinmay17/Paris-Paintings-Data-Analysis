@@ -11,6 +11,7 @@ suppressWarnings(library(purrr))
 suppressWarnings(library(knitr))
 suppressWarnings(library(grid))
 suppressWarnings(library(ggplot2))
+suppressWarnings(library(gbm))
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -175,16 +176,25 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###Testing Push
-m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth + winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain)
+
+#boosting
+m = gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + famous_author + winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain)
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface, data = newTrain,
+        distribution = "gaussian", n.trees=5000,interaction.depth = 4)
+
 ```
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 predictions = as.data.frame(
   exp(predict(m, newdata=newTest, 
-              interval = "pred")))
+              interval = "pred",n.trees = 5000)))
 save(predictions, file="predict-test.Rdata")
 ```
