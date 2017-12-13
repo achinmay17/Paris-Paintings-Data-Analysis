@@ -184,8 +184,7 @@ m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin +
 m2 <- gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain,
+        discauth + mat_recode + famous_author, data = newTrain,
         distribution="gaussian",n.trees=20000,interaction.depth=2)
 
 predictions = as.data.frame(
