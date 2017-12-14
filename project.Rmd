@@ -11,7 +11,6 @@ suppressWarnings(library(purrr))
 suppressWarnings(library(knitr))
 suppressWarnings(library(grid))
 suppressWarnings(library(ggplot2))
-suppressWarnings(library(gbm))
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -70,6 +69,43 @@ author_price <- train %>%
 train <- train %>% 
   mutate(famous_author = ifelse(authorstandard %in% 
                                   author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+
+
+#mat_recode
+mat_binary <- train %>% 
+  group_by(mat_recode) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+train <- train %>% 
+  mutate(mat_bino = ifelse(mat_recode %in% 
+                                  mat_binary$mat_recode[which(mat_binary$mean_price >= 800)],1,0))
+
+
+
+#Another variable "dealer_author"
+train$dealer_author <-0
+train <- within(train, dealer_author[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+train <- within(train, dealer_author[dealer == 'R' & origin_author == 'S'] <- 1)
+
+
+#Another variable "dealer_school_pntg"
+train$dealer_school <-0
+train <- within(train, dealer_school[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+train <- within(train, dealer_school[dealer == 'R' & origin_author == 'S'] <- 1)
+
+
+#Another variable "endbuyer_paired"
+train$endbuyer_paired <-0
+train <- within(train, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
+train <- within(train, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
+
+
+#Another variable "endbuyer_history"
+train$endbuyer_history <-0
+train <- within(train, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
+
+
 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
@@ -140,6 +176,44 @@ author_price <- train %>%
 test <- test %>% 
   mutate(famous_author = ifelse(authorstandard %in% 
                                   author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+
+
+#Another variable "dealer_author"
+test$dealer_author <-0
+test <- within(test, dealer_author[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+test <- within(test, dealer_author[dealer == 'R' & origin_author == 'S'] <- 1)
+
+
+#Another variable "dealer_school_pntg"
+test$dealer_school <-0
+test <- within(test, dealer_school[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+test <- within(test, dealer_school[dealer == 'R' & origin_author == 'S'] <- 1)
+
+
+#Another variable "endbuyer_paired"
+test$endbuyer_paired <-0
+test <- within(test, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
+test <- within(test, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
+
+
+#Another variable "endbuyer_paired"
+test$endbuyer_history <-0
+test <- within(test, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
+
+#mat_recode
+mat_binary <- train %>% 
+  group_by(mat_recode) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+test <- test %>% 
+  mutate(mat_bino = ifelse(mat_recode %in% 
+                                  mat_binary$mat_recode[which(mat_binary$mean_price >= 800)],1,0))
+
+
+
+
+
 
 #Professor's recoding
 test <- test %>%
@@ -250,10 +324,18 @@ library(randomForest)
 #        discauth+  
 #        Surface:mat_recode , data = newTrain,mtry=10, ntree=10000) 
 
-m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, #ntree=10000)  waiting to be verified
+
+
+m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth+ winningbiddertype:prevcoll + Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, ntree=10000) 
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, ntree=10000) 
+  #to be confirmed at 6:00 0.997 coverage 1503
 ```
 
 ```{r}
@@ -287,23 +369,23 @@ pred.interval <- function(model, percentile) {
     error[,3] <- exp(err_up)
     return(error)
 }
-interval <- pred.interval(m,0.95)
+interval <- pred.interval(m,0.997)
 ```
 
 
 ```{r}
 predictions = as.data.frame(interval)
-colnames(predictions) <- c("fit","lwr","ubr")
+colnames(predictions) <- c("fit","lwr","upr")
 save(predictions, file="predict-test.Rdata")
 ```
 
 
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
-prediction = as.data.frame(
-  exp(predict(m, newdata=newTest)))
-cbind(prediction,interval[,1],interval[,2])
-colnames(prediction) <- c("fit")#,"lwr","ubr")
+#prediction = as.data.frame(
+#  exp(predict(m, newdata=newTest)))
+#cbind(prediction,interval[,1],interval[,2])
+#colnames(prediction) <- c("fit")#,"lwr","ubr")
 #save(prediction, file="predict-test.Rdata")
 #,               interval = "pred",n.trees = 5000
 ```
