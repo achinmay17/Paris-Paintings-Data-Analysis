@@ -335,6 +335,7 @@ m= randomForest(log(price)~dealer + year + school_pntg + diff_origin +
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth + winningbiddertype:prevcoll + 
         Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, ntree=10000) 
+  #to be confirmed at 6:00 0.997 coverage 1503
 ```
 
 ```{r}
@@ -368,14 +369,14 @@ pred.interval <- function(model, percentile) {
     error[,3] <- exp(err_up)
     return(error)
 }
-interval <- pred.interval(m,0.997)
+interval <- pred.interval(m,0.977)
 ```
 
 
 ```{r}
-predictions = as.data.frame(interval)
-colnames(predictions) <- c("fit","lwr","ubr")
-save(predictions, file="predict-test.Rdata")
+prediction_rf = as.data.frame(interval)
+colnames(prediction_rf) <- c("fit","lwr","upr")
+save(prediction_rf, file="predict-test.Rdata")
 ```
 
 
