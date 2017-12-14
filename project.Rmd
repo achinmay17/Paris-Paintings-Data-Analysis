@@ -330,12 +330,21 @@ library(randomForest)
 #        discauth+ Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, #ntree=10000)  waiting to be verified
 
 
+#m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth + winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, ntree=10000) 
+  #to be confirmed at 6:0015 0.997 coverage 1503
+
+
 m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + 
+        discauth +
         Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, ntree=10000) 
-  #to be confirmed at 6:00 0.997 coverage 1503
+
+
 ```
 
 ```{r}
@@ -374,18 +383,18 @@ interval <- pred.interval(m,0.997)
 
 
 ```{r}
-predictions = as.data.frame(interval)
-colnames(predictions) <- c("fit","lwr","upr")
-save(predictions, file="predict-test.Rdata")
+#predictions = as.data.frame(interval)
+#colnames(predictions) <- c("fit","lwr","upr")
+#save(predictions, file="predict-test.Rdata")
 ```
 
 
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
-#prediction = as.data.frame(
-#  exp(predict(m, newdata=newTest)))
-#cbind(prediction,interval[,1],interval[,2])
-#colnames(prediction) <- c("fit")#,"lwr","ubr")
-#save(prediction, file="predict-test.Rdata")
+predictions = as.data.frame(interval)
+  #exp(predict(m, newdata=newTest)))
+#cbind(predictions,interval[,1],interval[,2])
+colnames(predictions) <- c("fit","lwr","ubr")
+save(predictions, file="predict-test.Rdata")
 #,               interval = "pred",n.trees = 5000
 ```
