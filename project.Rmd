@@ -342,7 +342,7 @@ m= randomForest(log(price)~dealer + year + school_pntg + diff_origin +
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth +
-        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, ntree=10000) 
+        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=10000) 
 
 
 ```
