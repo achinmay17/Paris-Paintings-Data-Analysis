@@ -342,7 +342,7 @@ m= randomForest(log(price)~dealer + year + school_pntg + diff_origin +
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth +
-        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=10000) 
+        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=10000) #mtry to 5 confrim at 18:45
 
 
 ```
@@ -391,6 +391,8 @@ interval <- pred.interval(m,0.997)
 
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
+interval[,2] <- pred.int[,1]
+interval[,3] <- pred.int[,2]
 predictions = as.data.frame(interval)
   #exp(predict(m, newdata=newTest)))
 #cbind(predictions,interval[,1],interval[,2])
