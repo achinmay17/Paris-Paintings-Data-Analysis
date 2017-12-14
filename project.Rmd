@@ -189,7 +189,7 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #        discauth + winningbiddertype:prevcoll + 
 #        Surface:mat_recode + famous_author:Surface, data = newTrain,
 #        distribution = "gaussian", n.trees=5000,interaction.depth = 4)
-#library(randomForest)
+library(randomForest)
 #m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
 #        artistliving + winningbiddertype + Surface + engraved + 
 #        prevcoll + paired + finished + lrgfont + othgenre +  
@@ -225,17 +225,39 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
 #        ntree=15000) #confirmed at 6:40 1503
 
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
+#        ntree=150000)  #1500~~
+
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ winningbiddertype:prevcoll + 
+#Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
+#        ntree=10000) 
+ln <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface, data = newTrain)
+
 m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth+ winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
-        ntree=150000) 
+        discauth+  
+        Surface:mat_recode , data = newTrain,mtry=10, ntree=10000) 
+```
+
+```{r}
+summary(ln)
 ```
 
 ```{r}
 newTest <- newTest %>%
-  mutate(price = c(1:1:dim(newTest)))
+  mutate(price = c(1:dim(newTest)))
 newTest <- rbind(newTrain[1, ] , newTest)
 newTest <- newTest[-1,]
 
