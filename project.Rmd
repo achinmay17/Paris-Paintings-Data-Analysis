@@ -369,14 +369,14 @@ pred.interval <- function(model, percentile) {
     error[,3] <- exp(err_up)
     return(error)
 }
-interval <- pred.interval(m,0.977)
+interval <- pred.interval(m,0.997)
 ```
 
 
 ```{r}
-prediction_rf = as.data.frame(interval)
-colnames(prediction_rf) <- c("fit","lwr","upr")
-save(prediction_rf, file="predict-test.Rdata")
+predictions = as.data.frame(interval)
+colnames(predictions) <- c("fit","lwr","upr")
+save(predictions, file="predict-test.Rdata")
 ```
 
 
