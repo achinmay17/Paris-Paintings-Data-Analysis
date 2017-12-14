@@ -12,6 +12,8 @@ suppressWarnings(library(grid))
 suppressWarnings(library(ggplot2))
 suppressWarnings(library(elasticnet))
 suppressWarnings(library(gbm))
+suppressWarnings(library(caret))
+suppressWarnings(library(grid))
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -210,15 +212,57 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #m <- my.train$finalModel
 #my.train$bestTune$lambda
 
-library(h2o)
+#library(h2o)
+#
+#m <- gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth + winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,
+#        distribution="gaussian",n.trees=20000,interaction.depth=2)
 
-m <- gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
+
+tr_control=trainControl(method="cv",number = 5)
+tunegrid=expand.grid(lambda=10^seq(-10,10,0.5),alpha=seq(0,1,0.005))
+fml <- log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
         discauth + winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain,
-        distribution="gaussian",n.trees=20000,interaction.depth=2)
+        Surface:mat_recode + famous_author:Surface
+some_model=train(fml,tuneGrid=tunegrid,data=newTrain,
+                 trControl=tr_control,method="glmnet")
+
+temp <- some_model$results
+some_model$bestTune
 ```
+
+```{r}
+B=1000
+#just training the model
+tr_control=trainControl(method="none")
+n=dim(newTrain)[1]
+preds=matrix(0,nrow=B,ncol=dim(newTest)[1])
+for (i in 1:B){
+  bootsample=sample(1:n,size=n,replace=TRUE)
+  trainset=newTrain[bootsample,]
+  mod_temp=train(fml,tuneGrid=some_model$bestTune,data=newTrain,
+                 trControl=tr_control,method="glmnet")
+  preds[i,]=exp(predict(mod_temp,newTest))
+  if (i %% 100 ==0){
+    print(i)
+  }
+}
+mean_b=apply(preds,2,mean)
+sd_b=apply(preds,2,sd)
+lower_b=mean_b-qnorm(0.975)*sd_b
+upper_b=mean_b+qnorm(0.975)*sd_b
+Yhat=cbind(mean_b,lower_b,upper_b)
+colnames(Yhat)=c("fit","lwr","upr")
+predictions = as.data.frame(Yhat)
+#predictions$PID = ames_validation$PID
+save(predictions, file="predict-validation.Rdata")
+```
+
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 predictions = as.data.frame(
