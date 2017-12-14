@@ -5,12 +5,12 @@ output: html_document
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###loading libraries
+
 suppressWarnings(library(dplyr))
 suppressWarnings(library(purrr))
 suppressWarnings(library(knitr))
 suppressWarnings(library(grid))
 suppressWarnings(library(ggplot2))
-suppressWarnings(library(elasticnet))
 suppressWarnings(library(gbm))
 ```
 
@@ -182,46 +182,89 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #        discauth + winningbiddertype:prevcoll + 
 #        Surface:mat_recode + famous_author:Surface, data = newTrain)
 
-#lasso
-#library(glmnet)
-#library(caret)
-#library(ISLR)
-#lambda.grid <- 10^seq(2,-2,length=100)
-#alpha.grid <- seq(0,1,length=10)
-#trnCtrl <- trainControl(
-#  method = "repeatedCV",
-#  number=10,
-#  repeats=5
-#)
-#srchGrd <- expand.grid(.alpha=alpha.grid, .lambda=lambda.grid)
-#my.train <- train(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#boosting
+#m = gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
 #        artistliving + winningbiddertype + Surface + engraved + 
 #        prevcoll + paired + finished + lrgfont + othgenre +  
 #        discauth + winningbiddertype:prevcoll + 
 #        Surface:mat_recode + famous_author:Surface, data = newTrain,
-#        method = "glmnet",
-#        tuneGrid = srchGrd,
-#        trControl = trnCtrl,
-#        standardize = FALSE,
-#        maxit=1000000)
-#
-#plot(my.train)
-#my.train$bestTune
-#m <- my.train$finalModel
-#my.train$bestTune$lambda
+#        distribution = "gaussian", n.trees=5000,interaction.depth = 4)
+#library(randomForest)
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface , data = newTrain,mtry=5,
+#        ntree=15000) #1498
 
-m <- gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ mat_recode + famous_author, data = newTrain,mtry=5,
+#        ntree=15000) #1490 increasing the number of trees only improves by 8
+
+
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ mat_recode + famous_author, data = newTrain,mtry=17,
+#        ntree=15000) #to be confirmed at 6:30 1522
+
+
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5,
+#        ntree=15000) #confrimed at 6:35 add back interaction.1489
+
+#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth+ winningbiddertype:prevcoll + 
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
+#        ntree=15000) #confirmed at 6:40 1503
+
+m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + 
-        Surface:mat_recode + famous_author:Surface, data = newTrain,
-        distribution="gaussian",n.trees=20000,interaction.depth=2)
+        discauth+ winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
+        ntree=150000) 
+```
+
+```{r}
+newTest <- newTest %>%
+  mutate(price = c(1:1:dim(newTest)))
+newTest <- rbind(newTrain[1, ] , newTest)
+newTest <- newTest[-1,]
+
+```
+
+```{r}
+pred.interval <- function(model, percentile) {
+    len <- length(newTest[,1])
+    preds <- predict(model, newdata=newTest)
+    err_down <- array(1:3, c(len,1))
+    err_up <- array(1:3, c(len,1))
+    for (i in 1:len){
+    err_down[i] <- quantile(preds, c((100 - percentile) / 200) )
+    err_up[i] <- quantile(preds, c(1 - (100 - percentile) / 200))
+    
+    }
+    error <- array(1:3, c(len,2))
+    error[,1] <- err_down
+    error[,2] <- err_up
+    return(error)
+}
+interval <- pred.interval(m,95)
 ```
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 predictions = as.data.frame(
-  exp(predict(m, newdata=newTest, 
-              interval = "predict",type="link",n.trees=20000)))
+  exp(predict(m, newdata=newTest)))
+
 colnames(predictions) <- "fit"
 save(predictions, file="predict-test.Rdata")
+#,               interval = "pred",n.trees = 5000
 ```
