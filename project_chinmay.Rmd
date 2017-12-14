@@ -71,6 +71,18 @@ train <- train %>%
                                   author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
 
 
+#mat_recode
+mat_binary <- train %>% 
+  group_by(mat_recode) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+train <- train %>% 
+  mutate(mat_bino = ifelse(mat_recode %in% 
+                                  mat_binary$mat_recode[which(mat_binary$mean_price >= 800)],1,0))
+
+
+
 #Another variable "dealer_author"
 train$dealer_author <-0
 train <- within(train, dealer_author[dealer == 'R' & origin_author == 'D/FL'] <- 1)
@@ -89,7 +101,7 @@ train <- within(train, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
 train <- within(train, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
 
 
-#Another variable "endbuyer_paired"
+#Another variable "endbuyer_history"
 train$endbuyer_history <-0
 train <- within(train, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
 
@@ -188,6 +200,17 @@ test <- within(test, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
 test$endbuyer_history <-0
 test <- within(test, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
 
+#mat_recode
+mat_binary <- train %>% 
+  group_by(mat_recode) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+test <- test %>% 
+  mutate(mat_bino = ifelse(mat_recode %in% 
+                                  mat_binary$mat_recode[which(mat_binary$mean_price >= 800)],1,0))
+
+
 
 
 
@@ -230,8 +253,8 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + dealer:school_pntg + endbuyer_history + 
-        Surface:mat_recode + famous_author:Surface + dealer_author + dealer_school + endbuyer_paired, data = newTrain)
+        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                                   endbuyer_paired +
+        Surface:mat_recode + famous_author:Surface, data = newTrain)
 
 summary(m)
 ```
