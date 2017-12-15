@@ -1,8 +1,10 @@
 ---
-title: "finalProject"
-author: "KangCheng Lin"
-date: "December 14, 2017"
-output: html_document
+title: "STA521 Report"
+author: "Team Omega"
+date: "December 13, 2017"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -89,10 +91,8 @@ train <- within(train, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
 train$endbuyer_history <-0
 train <- within(train, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
 
-#imputation of Surface
-temptrain <- mice(train,m=5, maxit=100 ,meth='pmm',seed=500)
-completeData <- complete(temptrain, 1)
-train$Surface <- completeData$Surface
+#remove NA
+train <- train[complete.cases(train$Surface),]
 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
@@ -188,10 +188,6 @@ test <- test %>%
                                ifelse(Shape == "ovale", "oval",
                                       ifelse(Shape == "ronde", "round",
                                              ifelse(Shape == "octogon", "octagon", Shape)))))
-#imputation of Surface
-temptest <- mice(test,m=5, maxit=100 ,meth='pmm',seed=500)
-completeData <- complete(temptest, 1)
-test$Surface <- completeData$Surface
 
 #remove descriptive variables
 newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
@@ -215,6 +211,9 @@ levels(newTest$school_pntg)[levels(newTest$school_pntg)=="G"] <- "OTHER"
 levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="EBC"] <- "OTHER"
 levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="BB"] <- "OTHER"
 levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "OTHER"
+
+#simple method to predict the NA in surface
+newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -363,9 +362,10 @@ multiplot(p2,p3,p4,p7,p8,p9,p10,p13, cols=2)
 ```{r,echo=FALSE,warning=FALSE}
 multiplot(p6, p5, cols=1)
 ```
+
 ### New Variables that are added
 1) dealer_author - Based on the groupby operations we observed that, if dealer is 'R' and 'origin_author' is 'D/FL' or 'S' mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise 
-```{r}
+```{r,echo=FALSE}
 temp <- train %>% 
   group_by(dealer, origin_author) %>% 
   summarise(mean_price = mean(price)) %>% 
@@ -376,7 +376,7 @@ temp
 ```
 
 2) dealer_school - Based on the groupby operations we observed that, if dealer is 'R' and 'school_pntg' is 'D/FL' or 'S' mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise
-```{r}
+```{r,echo=FALSE}
 temp <- train %>% 
   group_by(dealer, school_pntg) %>% 
   summarise(mean_price = mean(price)) %>% 
@@ -387,7 +387,7 @@ temp
 ```
 
 3) endbuyer_paired - Based on the groupby operations we observed that, if endbuyer is 'B' or 'C' and paired is 0, mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise
-```{r}
+```{r,echo=FALSE}
 temp <- train %>% 
   group_by(endbuyer, paired) %>% 
   summarise(mean_price = mean(price)) %>% 
@@ -398,7 +398,7 @@ temp
 ```
 
 4) endbuyer_history -Based on the groupby operations we observed that, if endbuyer is 'C' and 'history' is  1, mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise
-```{r}
+```{r,echo=FALSE}
 temp <- train %>% 
   group_by(endbuyer, history) %>% 
   summarise(mean_price = mean(price)) %>% 
@@ -455,7 +455,7 @@ One of the motivating factors of purchasing a painting could be the name of prev
 (4). famous_author and Surface
 We created anothe variable called 'famous_author' using following criteria:
 We calculated the mean price for each author using 'groupby' function. 
-```{r}
+```{r,echo=FALSE,message=FALSE}
 author_price <- train %>% 
   group_by(authorstandard) %>% 
   summarise(mean_price = mean(price)) %>% 
@@ -506,9 +506,12 @@ summary(m)
 
 
 #Different complex models that we tried
-1) BART - We used Bayesian Additive Regression Trees as our 1st complex model to do predictions. We tried several predictors and figured out that BART with all the predictors gives us really good coverage (123) on testing data set but RMSE is in range of 1500. If we reduce some of the predictors with multiple factors in it, RMSE is improved (1441) but coverage goes down to 171. The code is as shown:
 
-```{r}
+##BART
+
+We used Bayesian Additive Regression Trees as our 1st complex model to do predictions. We tried several predictors and figured out that BART with all the predictors gives us really good coverage (123) on testing data set but RMSE is in range of 1500. If we reduce some of the predictors with multiple factors in it, RMSE is improved (1441) but coverage goes down to 171. The code is as shown:
+
+```{r,eval=FALSE}
 X = subset(newTrain, select = -c(price))
 y = subset(newTrain, select = c(price))
 #change price into numeric
@@ -529,36 +532,64 @@ save(predictions, file="predict-test.Rdata")
 summary(bart_machine)
 ```
 
-2) 
+##Elastic Net
+
+Our group also considers elastic net as one of the possible models. First, we create a grid of $\alpha$ and $\lambda$, and train our dataset using 5-fold cross validation. After obtaining the optimal $\alpha$ and $\lambda$ on the grid, we proceed to make prediction with "glmnet" model using the optimal $\alpha$ and $\lambda$. The prediction result is encouraging, which managed to reach 1214 on the testing dataset. However, one of the main drawbacks of elastic net methods is that there is currently no consensus on how to obtain prediction interval from it. As a result, our group has to make do with an estimate, generated from running boostrap 1000 times, which still performs poorly by covering merely 29%. Nevertheless, despite its low coverage, we still believe that elastic net is one of our better performing models in prediction (if only coverage is not one of the major factors in evaluation).
+
+```{r,eval=FALSE}
+tr_control=trainControl(method="cv",number = 5)
+tunegrid=expand.grid(lambda=10^seq(-10,10,0.5),alpha=seq(0,1,0.005))
+fml <- log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface
+some_model=train(fml,tuneGrid=tunegrid,data=newTrain,
+                 trControl=tr_control,method="glmnet")
+some_model$bestTune
+```
+
+```{r,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+B=1000
+#just training the model
+tr_control=trainControl(method="none")
+n=dim(newTrain)[1]
+preds=matrix(0,nrow=B,ncol=dim(newTest)[1])
+for (i in 1:B){
+  bootsample=sample(1:n,size=n,replace=TRUE)
+  trainset=newTrain[bootsample,]
+  mod_temp=train(fml,tuneGrid=some_model$bestTune,data=trainset,
+                 trControl=tr_control,method="glmnet")
+  preds[i,]=predict(mod_temp,newTest)
+  if (i %% 100 ==0){
+    print(i)
+  }
+}
+mod=train(fml,tuneGrid=some_model$bestTune,data=newTrain,
+           trControl=tr_control,method="glmnet")
+mean_b=predict(mod,newTest)
+sd_b=apply(preds,2,sd)
+lower_b=mean_b-qnorm(0.975)*sd_b
+upper_b=mean_b+qnorm(0.975)*sd_b
+Yhat=exp(cbind(mean_b,lower_b,upper_b))
+colnames(Yhat)=c("fit","lwr","upr")
+predictions_glmnet = as.data.frame(Yhat)
+```
 
 
-4.  Development of the final model (20 points)
+#Conclusion
 
-* Final model: must include a summary table
+In conclusion, our group choose linear model over other complex model, not only because our linear model has better performance over our complex models (based on the training set, our linear model has lower RMSE, and high Coverage, while slightly sacrificing performance on Bias); but also its simple model interpretation as compared to other complex ones.
 
-* Variables: must include an explanation
+Despite the variety of models we have experimented on, our modified linear model still outperforms them in terms of RSME (1204), coverage(0.93) and bias (236.5). This final model differs from the previous linear model in part I by a new interaction variable that we discovered between famous_author and Surface. The rationale behind this new interaction is pretty intuitive, that the more well known the author of the painting is, the more valuable his or her works become. On top of that, the larger the painting is, it tends to be regarded as more valuable. As it turned out, the coefficient of this interaction variable is positive and has a very small p-value (2.29 * 10^-7). This indicated that the price of the painting is positively correlated with these two factors in addition to the ones we have discussed previously in part I.  
 
-* Variable selection/shrinkage: must use appropriate method and include an explanation
-
-
-* Residual: must include a residual plot and a discussion
-
-* discussion of how prediction intervals obtained 
-
-5. Assessment of the final model (25 points)
-
-
-* Model evaluation: must include an evaluation discussion
-
-* Model testing : must include a discussion
-
-* Model result: must include a selection and discussion of the top 10 valued  paintings in the validation data.
-
-6. Conclusion (10 points): must include a summary of results and a discussion of things learned. Optional what would you do if you had more time.
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(m)
+title("Residual plot of final model")
+summary(m)
+par(mfrow=c(1,1))
+```
 
 
-
-### Final Predictions Validation (20 points)
-Create predictions for the validation data from your final model using the dataframe `paintings_validation.Rdata` in your repo.  You may refit your final model to the combined training and test data.  Write predictions out to a file `prediction-validation.Rdata`
-This should have the same format as the model output in Part I and II.
-
+If we were given more time, our group is planning to do a complex Ensemble of models using the package "caretEnsemble". Unfortunately, we have learnt this package at a very late stage, so we do not have enough time to experiment with it. Given more time, however, we should be able to use its intrinsic function to create "caretList" and "caretStack", which can allow use to better tune model, for example by assigning different weights to different models in "caretList". 
