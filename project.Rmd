@@ -253,113 +253,35 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
 #        artistliving + winningbiddertype + Surface + engraved + 
 #        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth + winningbiddertype:prevcoll + 
+#        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                                   endbuyer_paired +
 #        Surface:mat_recode + famous_author:Surface, data = newTrain)
 
-#boosting
-#m = gbm(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth + winningbiddertype:prevcoll + 
-#        Surface:mat_recode + famous_author:Surface, data = newTrain,
-#        distribution = "gaussian", n.trees=5000,interaction.depth = 4)
-library(randomForest)
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ winningbiddertype:prevcoll + 
-#        Surface:mat_recode + famous_author:Surface , data = newTrain,mtry=5,
-#        ntree=15000) #1498
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ mat_recode + famous_author, data = newTrain,mtry=5,
-#        ntree=15000) #1490 increasing the number of trees only improves by 8
-
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ mat_recode + famous_author, data = newTrain,mtry=17,
-#        ntree=15000) #to be confirmed at 6:30 1522
-
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ winningbiddertype:prevcoll + 
-#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5,
-#        ntree=15000) #confrimed at 6:35 add back interaction.1489
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ winningbiddertype:prevcoll + 
-#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
-#        ntree=15000) #confirmed at 6:40 1503
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ winningbiddertype:prevcoll + 
-#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
-#        ntree=150000)  #1500~~
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ winningbiddertype:prevcoll + 
-#Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10,
-#        ntree=10000) 
-#ln <-lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth + winningbiddertype:prevcoll + 
-#        Surface:mat_recode + famous_author:Surface, data = newTrain)
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+  
-#        Surface:mat_recode , data = newTrain,mtry=10, ntree=10000) 
-
-#m= randomForest(log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth+ Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, #ntree=10000)  waiting to be verified
-
-
+#1490 92 without dealer author endbuyer history
+#library(randomForest)
 #m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
 #        artistliving + winningbiddertype + Surface + engraved + 
 #        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth + winningbiddertype:prevcoll + 
-#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=10, ntree=10000) 
-  #to be confirmed at 6:0015 0.997 coverage 1503
+#        discauth + dealer_author + endbuyer_history +                                   endbuyer_paired +
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=15000) #1467
 
+#library(randomForest)
+#m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth + dealer_author + endbuyer_history +                                   endbuyer_paired +
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=20000) #1467 92 291 
 
 m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth +
-        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=10000) #mtry to 5 confrim at 18:45
+        discauth + dealer_author + endbuyer_history +                                   endbuyer_paired +
+        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=3, ntree=15000)
 
 
+summary(m)
 ```
 
-```{r}
-#summary(ln)
-```
-
-```{r}
-newTest <- newTest %>%
-  mutate(price = c(1:dim(newTest)))
-newTest <- rbind(newTrain[1, ] , newTest)
-newTest <- newTest[-1,]
-
-```
-
-```{r}
+```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 pred.interval <- function(model, percentile) {
     
     preds <- predict(model, newdata=newTest,type="response",predict.all=TRUE)
@@ -378,25 +300,11 @@ pred.interval <- function(model, percentile) {
     error[,3] <- exp(err_up)
     return(error)
 }
-interval <- pred.interval(m,0.997)
-```
+interval <- pred.interval(m,0.975)
 
+predictions = as.data.frame(
+  interval)
 
-```{r}
-#predictions = as.data.frame(interval)
-#colnames(predictions) <- c("fit","lwr","upr")
-#save(predictions, file="predict-test.Rdata")
-```
-
-
-
-```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
-interval[,2] <- pred.int[,1]
-interval[,3] <- pred.int[,2]
-predictions = as.data.frame(interval)
-  #exp(predict(m, newdata=newTest)))
-#cbind(predictions,interval[,1],interval[,2])
-colnames(predictions) <- c("fit","lwr","ubr")
+colnames(predictions) <- c("fit","lwr","upr")
 save(predictions, file="predict-test.Rdata")
-#,               interval = "pred",n.trees = 5000
 ```
