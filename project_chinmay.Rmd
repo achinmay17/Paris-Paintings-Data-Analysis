@@ -11,6 +11,7 @@ suppressWarnings(library(purrr))
 suppressWarnings(library(knitr))
 suppressWarnings(library(grid))
 suppressWarnings(library(ggplot2))
+suppressWarnings(library(bartMachine))
 ```
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
@@ -105,8 +106,7 @@ train <- within(train, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
 train$endbuyer_history <-0
 train <- within(train, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
 
-
-
+ 
 #remove completely descriptive (thus irrelevant) variables
 newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
                                         "authorstyle","authorstandard","author",
@@ -211,10 +211,6 @@ test <- test %>%
                                   mat_binary$mat_recode[which(mat_binary$mean_price >= 800)],1,0))
 
 
-
-
-
-
 #Professor's recoding
 test <- test %>%
   mutate(shape_recode = ifelse(Shape == "", "Not Available",
@@ -248,45 +244,39 @@ levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "O
 newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
 ```
 
+```{r}
+X = subset(newTrain, select = -c(price))
+y = subset(newTrain, select = c(price))
+#change price into numeric
+y <- as.numeric(gsub(",","",newTrain$price))
+y <- log(y)
+
+
+bart_machine = bartMachine(X,y)
+pred_int = calc_prediction_intervals(bart_machine, newTest)
+predictions1 = predict(bart_machine, newTest)
+y1 <- exp(pred_int)
+y2 <- exp(predictions1)
+predictions <- cbind(y2, y1)
+colnames(predictions) <- c("fit","lwr","upr")
+save(predictions, file="predict-test.Rdata")
+```
+
+
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###Testing Push
 #m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                                   endbuyer_paired +
-#        Surface:mat_recode + famous_author:Surface, data = newTrain)
-library(randomForest)
-m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth +
-        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=10000)
+        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                                  endbuyer_paired + dealer_school +
+        Surface:mat_recode + famous_author:Surface, data = newTrain)
 
-summary(m)
+#summary(m)
 ```
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
-pred.interval <- function(model, percentile) {
-    
-    preds <- predict(model, newdata=newTest,type="response",predict.all=TRUE)
-    len <- length(preds$individual[,1])
-    err_down <- array(1:3, c(len,1))
-    err_up <- array(1:3, c(len,1))
-   
-    for (i in 1:len){
-    err_down[i] <- quantile(preds$individual[i,], (1-percentile)/2 )
-    err_up[i] <- quantile(preds$individual[i,], (1+percentile)/2)
-    
-    }
-    error <- array(1:3, c(len,3))
-    error[,1] <-exp(preds$aggregate)
-    error[,2] <- exp(err_down)
-    error[,3] <- exp(err_up)
-    return(error)
-}
-interval <- pred.interval(m,0.975)
-
-predictions = as.data.frame(
-  interval)
-save(predictions, file="predict-test.Rdata")
+#predictions = as.data.frame(
+ # exp(predict(m, newdata=newTest, 
+              #interval = "pred")))
+#save(predictions, file="predict-test.Rdata")
 ```
