@@ -250,11 +250,11 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###Testing Push
-#m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-#        artistliving + winningbiddertype + Surface + engraved + 
-#        prevcoll + paired + finished + lrgfont + othgenre +  
-#        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                                   endbuyer_paired +
-#        Surface:mat_recode + famous_author:Surface, data = newTrain)
+ln <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                                   endbuyer_paired +
+        Surface:mat_recode + famous_author:Surface, data = newTrain)
 
 #1490 92 without dealer author endbuyer history
 #library(randomForest)
@@ -271,20 +271,33 @@ newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na
 #        discauth + dealer_author + endbuyer_history +                                   endbuyer_paired +
 #        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=5, ntree=20000) #1467 92 291 
 
-m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
+#m= randomForest(log(price)~dealer + year + school_pntg + diff_origin + 
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth + dealer_author + endbuyer_history +                                   endbuyer_paired +
+#        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=3, ntree=15000) #1492
+
+m= randomForest(log(price)~ dealer + year + school_pntg + diff_origin + 
         artistliving + winningbiddertype + Surface + engraved + 
         prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + dealer_author + endbuyer_history +                                   endbuyer_paired +
-        Surface:mat_recode + famous_author:Surface, data = newTrain,mtry=3, ntree=15000)
+        discauth + dealer_author + endbuyer_history +                                   endbuyer_paired + mat_recode + famous_author:Surface, data = newTrain,mtry=7, ntree=15000) #deleting winning bidder type and matrecode interaction
 
+summary(ln)
 
-summary(m)
+```
+
+```{r}
+newTest <- newTest %>%
+  mutate(price = c(1:dim(newTest)))
+newTest <- rbind(newTrain[1, ] , newTest)
+newTest <- newTest[-1,]
+
 ```
 
 ```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
 pred.interval <- function(model, percentile) {
     
-    preds <- predict(model, newdata=newTest,type="response",predict.all=TRUE)
+    preds <- predict(model, newdata=newTest,predict.all=TRUE)
     len <- length(preds$individual[,1])
     err_down <- array(1:3, c(len,1))
     err_up <- array(1:3, c(len,1))
@@ -300,10 +313,11 @@ pred.interval <- function(model, percentile) {
     error[,3] <- exp(err_up)
     return(error)
 }
+
+
 interval <- pred.interval(m,0.975)
 
-predictions = as.data.frame(
-  interval)
+predictions = as.data.frame(interval)
 
 colnames(predictions) <- c("fit","lwr","upr")
 save(predictions, file="predict-test.Rdata")
