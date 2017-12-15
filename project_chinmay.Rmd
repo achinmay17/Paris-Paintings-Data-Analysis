@@ -262,7 +262,6 @@ y2 <- exp(predictions1)
 predictions <- cbind(y2, y1)
 colnames(predictions) <- c("fit","lwr","upr")
 save(predictions, file="predict-test.Rdata")
-?bartMachine
 ```
 
 
