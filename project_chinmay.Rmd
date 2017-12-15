@@ -250,26 +250,29 @@ y = subset(newTrain, select = c(price))
 #change price into numeric
 y <- as.numeric(gsub(",","",newTrain$price))
 y <- log(y)
+X = subset(newTrain, select = c(dealer, year, school_pntg, diff_origin, artistliving, winningbiddertype, Surface, engraved, prevcoll, paired, finished, lrgfont, othgenre, discauth, dealer_author, endbuyer_history, endbuyer_paired, dealer_school))
 
+Xnew = subset(newTest, select = c(dealer, year, school_pntg, diff_origin, artistliving, winningbiddertype, Surface, engraved, prevcoll, paired, finished, lrgfont, othgenre, discauth, dealer_author, endbuyer_history, endbuyer_paired, dealer_school) )
 
-bart_machine = bartMachine(X,y)
-pred_int = calc_prediction_intervals(bart_machine, newTest)
-predictions1 = predict(bart_machine, newTest)
+bart_machine = bartMachine(X,y, num_trees = 100, num_burn_in = 500, num_iterations_after_burn_in = 1000)
+pred_int = calc_prediction_intervals(bart_machine, Xnew)
+predictions1 = predict(bart_machine, Xnew)
 y1 <- exp(pred_int)
 y2 <- exp(predictions1)
 predictions <- cbind(y2, y1)
 colnames(predictions) <- c("fit","lwr","upr")
 save(predictions, file="predict-test.Rdata")
+?bartMachine
 ```
 
 
 ```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
 ###Testing Push
 #m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
-        artistliving + winningbiddertype + Surface + engraved + 
-        prevcoll + paired + finished + lrgfont + othgenre +  
-        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                                  endbuyer_paired + dealer_school +
-        Surface:mat_recode + famous_author:Surface, data = newTrain)
+#        artistliving + winningbiddertype + Surface + engraved + 
+#        prevcoll + paired + finished + lrgfont + othgenre +  
+#        discauth + winningbiddertype:prevcoll + dealer_author + endbuyer_history +                         #         endbuyer_paired + dealer_school +
+#        Surface:mat_recode + famous_author:Surface, data = newTrain)
 
 #summary(m)
 ```
