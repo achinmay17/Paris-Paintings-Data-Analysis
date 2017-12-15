@@ -1,0 +1,597 @@
+---
+title: "STA521 Report"
+author: "Team Omega"
+date: "December 13, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###loading libraries
+suppressWarnings(library(dplyr))
+suppressWarnings(library(purrr))
+suppressWarnings(library(knitr))
+suppressWarnings(library(grid))
+suppressWarnings(library(ggplot2))
+suppressWarnings(library(bartMachine))
+suppressWarnings(library(gbm))
+suppressWarnings(library(caret))
+suppressWarnings(library(caretEnsemble))
+suppressWarnings(library(grid))
+suppressWarnings(library(mice))
+suppressWarnings(library(BART))
+suppressWarnings(library(BAS))
+suppressWarnings(library(monomvn))
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###loading dataset
+load("paintings_train.Rdata")
+train <- paintings_train
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+#recode
+train <- train %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+train <- train %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+train <- train%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+train <- train%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+train <- train%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+train <- train%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+train <- train%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+train <- train%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+#change price into numeric
+train$price <- as.numeric(gsub(",","",train$price))
+
+#create a new variable "famous_author"
+author_price <- train %>% 
+  group_by(authorstandard) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+train <- train %>% 
+  mutate(famous_author = ifelse(authorstandard %in% 
+                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+
+#Another variable "dealer_author"
+train$dealer_author <-0
+train <- within(train, dealer_author[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+train <- within(train, dealer_author[dealer == 'R' & origin_author == 'S'] <- 1)
+
+#Another variable "dealer_school_pntg"
+train$dealer_school <-0
+train <- within(train, dealer_school[dealer == 'R' & school_pntg == 'D/FL'] <- 1)
+train <- within(train, dealer_school[dealer == 'R' & school_pntg == 'S'] <- 1)
+
+#Another variable "endbuyer_paired"
+train$endbuyer_paired <-0
+train <- within(train, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
+train <- within(train, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
+
+#Another variable "endbuyer_history"
+train$endbuyer_history <-0
+train <- within(train, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
+
+#remove NA
+train <- train[complete.cases(train$Surface),]
+
+save(train,file="train_processed.Rdata")
+
+#remove completely descriptive (thus irrelevant) variables
+newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+#change all character strings to factors
+character_vars <- lapply(newTrain, class) == "character"
+newTrain[, character_vars] <- lapply(newTrain[, character_vars], as.factor)
+
+#change the level of factor
+levels(newTrain$type_intermed)[levels(newTrain$type_intermed)==""] <- "NONE"
+levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)==""] <- "NONE"
+levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
+levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
+levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
+levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###testing dataset
+load("paintings_test.Rdata")
+test <- paintings_test
+
+#recode
+test <- test %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+test <- test%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+test <- test%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+test <- test%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+test <- test%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+test <- test%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+test <- test%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+#create a new variable "famous_author"
+author_price <- train %>% 
+  group_by(authorstandard) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+test <- test %>% 
+  mutate(famous_author = ifelse(authorstandard %in% 
+                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+
+
+#Another variable "dealer_author"
+test$dealer_author <-0
+test <- within(test, dealer_author[dealer == 'R' & school_pntg == 'D/FL'] <- 1)
+test <- within(test, dealer_author[dealer == 'R' & school_pntg == 'S'] <- 1)
+
+
+#Another variable "dealer_school_pntg"
+test$dealer_school <-0
+test <- within(test, dealer_school[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+test <- within(test, dealer_school[dealer == 'R' & origin_author == 'S'] <- 1)
+
+
+#Another variable "endbuyer_paired"
+test$endbuyer_paired <-0
+test <- within(test, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
+test <- within(test, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
+
+
+#Another variable "endbuyer_paired"
+test$endbuyer_history <-0
+test <- within(test, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
+
+
+#Professor's recoding
+test <- test %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+
+#remove descriptive variables
+newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder", "price",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+#change all character strings to factors
+character_vars <- lapply(newTest, class) == "character"
+newTest[, character_vars] <- lapply(newTest[, character_vars], as.factor)
+
+#change the level of factors
+levels(newTest$type_intermed)[levels(newTest$type_intermed)==""] <- "NONE"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)==""] <- "NONE"
+levels(newTest$endbuyer)[levels(newTest$endbuyer)==""] <- "NONE"
+levels(newTest$materialCat)[levels(newTest$materialCat)==""] <- "NONE"
+levels(newTest$school_pntg)[levels(newTest$school_pntg)=="A"] <- "OTHER"
+levels(newTest$school_pntg)[levels(newTest$school_pntg)=="G"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="EBC"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="BB"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "OTHER"
+
+#simple method to predict the NA in surface
+newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+#initial model with logging price
+m1 <- lm(log(price) ~ .,dat=newTrain)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###AIC
+best_AIC <- step(m1,direction = "both",k=2)
+summary(best_AIC)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###BIC
+best_BIC <- step(m1,direction = "both",k=log(nrow(newTrain)))
+summary(best_BIC)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###Testing Push
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode, data = newTrain)
+```
+
+```{r,echo=FALSE,message=FALSE,results = 'hide',warning=FALSE}
+predictions = as.data.frame(
+  exp(predict(m, newdata=newTest, 
+              interval = "pred")))
+save(predictions, file="predict-test.Rdata")
+```
+
+
+#1. Introduction: 
+
+#Summary of Problem: 
+We are given a dataset which provides information about auctions of paintings which were sold between years 1764 and 1780. The data tells us about different attributes of paintings, information about auction, information about the artist, information about the buyer and the price at which it was sold. There are total 59 columns (variables) in data including 'price' and 'log(price)'. Our task is to find out the relation between variables and the price so that we can predict the price of a paintings. We should also interpret the results as which are the most/least influential factor in determining the price of the painting. 
+
+Objectives:
+
+1) Exploratory data analysis
+2) Create new variables : Adding to previous submission, we created some new variables based on the observationsa and included those variables in the final model. 
+3) Find out interaction
+4) Impute missing values if neccessary
+5) Create a best-fit model influential variables and interpret results
+6) Test the model with test data and interpret the results 
+
+\newpage
+
+#2. Exploratory Data Analysis
+
+###Some Graphs and analysis
+
+The following is a group of boxplots that show the effect of different variables on price. Based on these boxplots, we observe that the mean of price differ between layers of categorical variables; the discrepancies are later on substantiated by hypothesis testing to be statistically significant. As a preliminary analysis, we decide to put them into our raw model before BIC analysis. It turns out that all but mat_recode are included in our final model. Even though mat_recode is not significant on its own, it proves to be a very interesting variable in interaction term. 
+
+```{r,echo=FALSE}
+#function to group multiple plots
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+#all the plots
+p2<- ggplot (data= train, aes (y = price, x = factor(dealer), col = factor(dealer)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p3<-ggplot (data= train, aes (y = price, x = mat_recode , col = mat_recode))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p4 <- ggplot (data= train, aes (y = price, x =factor(school_pntg), col = factor(school_pntg)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p5<-ggplot(data = train, aes(x = year, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(log(price) ~ year, data = train)
+s2 <- summary(m1)
+
+p6<-ggplot(data = train, aes(x = Surface, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(log(price) ~ Surface, data = train)
+s1<-summary(m1)
+
+p11 <-ggplot(data = train, aes(x = nfigures, y = logprice)) + geom_point() + stat_smooth(method = "lm")
+m1 <- lm(log(price) ~ nfigures, data = train)
+
+p7<-ggplot (data= train, aes (y = price, x =factor(prevcoll), col = factor(prevcoll)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p8<-ggplot (data= train, aes (y = price, x = factor(lrgfont) , col = factor(lrgfont)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p9<-ggplot (data= train, aes (y = price, x = factor(engraved), col = factor(engraved)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p10 <- ggplot (data= train, aes (y = price, x = factor(othgenre), col = factor(othgenre)))+
+  geom_boxplot() +
+  scale_y_log10()
+
+p13 <- ggplot (data= train, aes (y = price, x = factor(discauth), col = factor(discauth)))+
+  geom_boxplot() +
+  scale_y_log10()
+```
+
+```{r,echo=FALSE,warning=FALSE}
+#boxplots
+multiplot(p2,p3,p4,p7,p8,p9,p10,p13, cols=2)
+```
+
+```{r,echo=FALSE,warning=FALSE}
+multiplot(p6, p5, cols=1)
+```
+
+### New Variables that are added
+1) dealer_author - Based on the groupby operations we observed that, if dealer is 'R' and 'origin_author' is 'D/FL' or 'S' mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise 
+```{r,echo=FALSE}
+temp <- train %>% 
+  group_by(dealer, origin_author) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+
+temp
+```
+
+2) dealer_school - Based on the groupby operations we observed that, if dealer is 'R' and 'school_pntg' is 'D/FL' or 'S' mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise
+```{r,echo=FALSE}
+temp <- train %>% 
+  group_by(dealer, school_pntg) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+
+temp
+```
+
+3) endbuyer_paired - Based on the groupby operations we observed that, if endbuyer is 'B' or 'C' and paired is 0, mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise
+```{r,echo=FALSE}
+temp <- train %>% 
+  group_by(endbuyer, paired) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+
+temp
+```
+
+4) endbuyer_history -Based on the groupby operations we observed that, if endbuyer is 'C' and 'history' is  1, mean price of painting is significantly higher than other ones. So we created a binary variable with value equal to 1 if the above condition is satified and 0, if otherwise
+```{r,echo=FALSE}
+temp <- train %>% 
+  group_by(endbuyer, history) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+
+temp
+``` 
+### Imputing missing values:
+Missing values in Surface variable were imputed using 'mice' package. Code is shown below
+```{echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+suppressWarnings(library(mice))
+
+###loading dataset
+load("paintings_train.Rdata")
+train <- paintings_train
+
+temptrain <- mice(train,m=5, maxit=100 ,meth='pmm',seed=500)
+
+completeData <- complete(temptrain, 1)
+
+train$Surface <- completeData$Surface
+```
+
+
+###Interactions 
+
+(1). Surface:mat_recode
+
+Surface area and mat_recode (recoding of material) should have some interaction as different material is used fo paintings for different sizes of paintings. This is further supported as we observe significantly different slopes from layer to layer.
+
+```{r,echo=FALSE,warning=FALSE}
+p14 <-ggplot(data = train, aes(y = logprice, x= Surface, factor= mat_recode, color=factor(mat_recode))) + geom_point (alpha = 0.3) +
+  geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
+```
+
+
+(2). school_pntg:Surface 
+
+School of painting and surface area of painting will definitely have some interaction as different style of paintings will use different figures and landscapes in them which will have diffeent sizes. For example, a portrait will usually have smaller surface area than a landscape which includes mountains and rivers.
+
+```{r,echo=FALSE,warning=FALSE}
+p15 <- ggplot(data = train, aes(y = logprice, x= Surface, factor= school_pntg, color=factor(school_pntg))) + geom_point (alpha = 0.3) +
+  geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
+```
+
+
+(3). winningbiddertype:prevcoll 
+
+One of the motivating factors of purchasing a painting could be the name of previous owner of that painting. If bidders know that the previous owner of the painting was a well-known person, then they may be more willing to pay for a higher price. So we figure that 'winningbiddertype' and 'prevcoll' may have some interaction.
+
+
+
+(4). famous_author and Surface
+We created anothe variable called 'famous_author' using following criteria:
+We calculated the mean price for each author using 'groupby' function. 
+```{r,echo=FALSE,message=FALSE}
+author_price <- train %>% 
+  group_by(authorstandard) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+author_price
+```
+```{r,echo=FALSE,warning=FALSE}
+p16 <- ggplot(data = train, aes(y = logprice, x= Surface, factor= famous_author, color=factor(famous_author))) + geom_point (alpha = 0.3) +
+  geom_point(alpha = 0.3) + stat_smooth(method = "lm", fullrange =TRUE)
+```
+We decided that we will call all those authors 'famous_authors' whose mean price is greater than 3000. Once we had 'famous'author' variable, we plotted the following graph to figure out that it is interacting with 'Surface' variable. 
+
+```{r,echo=FALSE,warning=FALSE}
+multiplot(p16, p14, p15, cols=1)
+```                     
+
+\newpage
+
+
+3. Discussion of preliminary model Part I:
+We formew=d a linear model in part 1, which we decided to improve. We started adding our new variables and a new interaction. After observing the results from leaderboard, we observed that the following linear model performs best in terms of RMSE.
+
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###Testing Push
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface, data = newTrain)
+
+summary(m)
+```
+
+With 3 newly created variables, RMSE increases a bit but coverage improve. 
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###Testing Push
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + endbuyer_history + endbuyer_paired + dealer_author +
+        Surface:mat_recode + famous_author:Surface, data = newTrain)
+
+summary(m)
+```
+
+
+#Different complex models that we tried
+
+##BART
+
+We used Bayesian Additive Regression Trees as our 1st complex model to do predictions. We tried several predictors and figured out that BART with all the predictors gives us really good coverage (123) on testing data set but RMSE is in range of 1500. If we reduce some of the predictors with multiple factors in it, RMSE is improved (1441) but coverage goes down to 171. The code is as shown:
+
+```{r,eval=FALSE}
+X = subset(newTrain, select = -c(price))
+y = subset(newTrain, select = c(price))
+#change price into numeric
+y <- as.numeric(gsub(",","",newTrain$price))
+y <- log(y)
+X = subset(X, select = -c(other, pastorale, allegory, singlefig, peasant, fig_mention, artist_living_notliving, history_nohistory, mytho_nomytho, finished_nofinished, LF, type_intermed,count, origin_cat, prevcoll, paired, winningbiddertype))
+
+bart_machine = bartMachine(X,y, num_trees = 65, num_burn_in = 500, num_iterations_after_burn_in = 1000)
+
+Xnew = subset(newTest, select =-c(other, pastorale, allegory, singlefig, peasant, fig_mention, artist_living_notliving, history_nohistory, mytho_nomytho, finished_nofinished, LF, type_intermed,count, origin_cat, prevcoll, paired, winningbiddertype))
+pred_int = calc_prediction_intervals(bart_machine, Xnew)
+predictions1 = predict(bart_machine, Xnew)
+y1 <- exp(pred_int)
+y2 <- exp(predictions1)
+predictions <- cbind(y2, y1)
+colnames(predictions) <- c("fit","lwr","upr")
+save(predictions, file="predict-test.Rdata")
+summary(bart_machine)
+```
+
+##Elastic Net
+
+Our group also considers elastic net as one of the possible models. First, we create a grid of $\alpha$ and $\lambda$, and train our dataset using 5-fold cross validation. After obtaining the optimal $\alpha$ and $\lambda$ on the grid, we proceed to make prediction with "glmnet" model using the optimal $\alpha$ and $\lambda$. The prediction result is encouraging, which managed to reach 1214 on the testing dataset. However, one of the main drawbacks of elastic net methods is that there is currently no consensus on how to obtain prediction interval from it. As a result, our group has to make do with an estimate, generated from running boostrap 1000 times, which still performs poorly by covering merely 29%. Nevertheless, despite its low coverage, we still believe that elastic net is one of our better performing models in prediction (if only coverage is not one of the major factors in evaluation).
+
+```{r,eval=FALSE}
+tr_control=trainControl(method="cv",number = 5)
+tunegrid=expand.grid(lambda=10^seq(-10,10,0.5),alpha=seq(0,1,0.005))
+fml <- log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface
+some_model=train(fml,tuneGrid=tunegrid,data=newTrain,
+                 trControl=tr_control,method="glmnet")
+some_model$bestTune
+```
+
+```{r,eval=FALSE,message=FALSE,warning=FALSE}
+B=1000
+#just training the model
+tr_control=trainControl(method="none")
+n=dim(newTrain)[1]
+preds=matrix(0,nrow=B,ncol=dim(newTest)[1])
+for (i in 1:B){
+  bootsample=sample(1:n,size=n,replace=TRUE)
+  trainset=newTrain[bootsample,]
+  mod_temp=train(fml,tuneGrid=some_model$bestTune,data=trainset,
+                 trControl=tr_control,method="glmnet")
+  preds[i,]=predict(mod_temp,newTest)
+  if (i %% 100 ==0){
+    print(i)
+  }
+}
+mod=train(fml,tuneGrid=some_model$bestTune,data=newTrain,
+           trControl=tr_control,method="glmnet")
+mean_b=predict(mod,newTest)
+sd_b=apply(preds,2,sd)
+lower_b=mean_b-qnorm(0.975)*sd_b
+upper_b=mean_b+qnorm(0.975)*sd_b
+Yhat=exp(cbind(mean_b,lower_b,upper_b))
+colnames(Yhat)=c("fit","lwr","upr")
+predictions_glmnet = as.data.frame(Yhat)
+```
+
+
+#Conclusion
+
+In conclusion, our group choose linear model over other complex model, not only because our linear model has better performance over our complex models (based on the training set, our linear model has lower RMSE, and high Coverage, while slightly sacrificing performance on Bias); but also its simple model interpretation as compared to other complex ones.
+
+Despite the variety of models we have experimented on, our modified linear model still outperforms them in terms of RSME (1204), coverage(0.93) and bias (236.5). This final model differs from the previous linear model in part I by a new interaction variable that we discovered between famous_author and Surface. The rationale behind this new interaction is pretty intuitive, that the more well known the author of the painting is, the more valuable his or her works become. On top of that, the larger the painting is, it tends to be regarded as more valuable. As it turned out, the coefficient of this interaction variable is positive and has a very small p-value (2.29 * 10^-7). This indicated that the price of the painting is positively correlated with these two factors in addition to the ones we have discussed previously in part I.  
+
+```{r,echo=FALSE}
+par(mfrow=c(2,2))
+plot(m)
+title("Residual plot of final model")
+summary(m)
+par(mfrow=c(1,1))
+```
+
+
+If we were given more time, our group is planning to do a complex Ensemble of models using the package "caretEnsemble". Unfortunately, we have learnt this package at a very late stage, so we do not have enough time to experiment with it. Given more time, however, we should be able to use its intrinsic function to create "caretList" and "caretStack", which can allow use to better tune model, for example by assigning different weights to different models in "caretList". 
