@@ -1,0 +1,330 @@
+---
+title: "predict_validation"
+output: html_document
+---
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###loading libraries
+suppressWarnings(library(dplyr))
+suppressWarnings(library(purrr))
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###loading dataset
+load("paintings_train.Rdata")
+train <- paintings_train
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+#recode
+train <- train %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+train <- train %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+train <- train%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+train <- train%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+train <- train%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+train <- train%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+train <- train%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+train <- train%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+#change price into numeric
+train$price <- as.numeric(gsub(",","",train$price))
+
+#create a new variable "famous_author"
+author_price <- train %>% 
+  group_by(authorstandard) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+train <- train %>% 
+  mutate(famous_author = ifelse(authorstandard %in% 
+                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+
+#Another variable "dealer_author"
+train$dealer_author <-0
+train <- within(train, dealer_author[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+train <- within(train, dealer_author[dealer == 'R' & origin_author == 'S'] <- 1)
+
+#Another variable "dealer_school_pntg"
+train$dealer_school <-0
+train <- within(train, dealer_school[dealer == 'R' & school_pntg == 'D/FL'] <- 1)
+train <- within(train, dealer_school[dealer == 'R' & school_pntg == 'S'] <- 1)
+
+#Another variable "endbuyer_paired"
+train$endbuyer_paired <-0
+train <- within(train, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
+train <- within(train, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
+
+#Another variable "endbuyer_history"
+train$endbuyer_history <-0
+train <- within(train, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
+
+#remove completely descriptive (thus irrelevant) variables
+newTrain <- train[,!names(train) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+#change all character strings to factors
+character_vars <- lapply(newTrain, class) == "character"
+newTrain[, character_vars] <- lapply(newTrain[, character_vars], as.factor)
+
+#change the level of factor
+levels(newTrain$type_intermed)[levels(newTrain$type_intermed)==""] <- "NONE"
+levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)==""] <- "NONE"
+levels(newTrain$endbuyer)[levels(newTrain$endbuyer)==""] <- "NONE"
+levels(newTrain$materialCat)[levels(newTrain$materialCat)==""] <- "NONE"
+levels(newTrain$school_pntg)[levels(newTrain$school_pntg)=="S"] <- "OTHER"
+levels(newTrain$winningbiddertype)[levels(newTrain$winningbiddertype)=="EBC"] <- "OTHER"
+
+#simple method to predict the NA in surface
+newTrain$Surface[which(is.na(newTrain$Surface)==TRUE)] <- mean(newTrain$Surface, na.rm = TRUE)
+```
+
+```{r,echo=FALSE, results='hide',message=FALSE,warning=FALSE}
+###testing dataset
+load("paintings_test.Rdata")
+test <- paintings_test
+
+#recode
+test <- test %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                      ifelse(mat %in% c("al", "ar", "m"), "stone",
+                      ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                      ifelse(mat %in% c("p", "ca"), "paper",
+                      ifelse(mat %in% c("b"), "wood",
+                      ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                      ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+test <- test%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+test <- test%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+test <- test%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+test <- test%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+test <- test%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+test <- test%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+#change price into numeric
+test$price <- as.numeric(gsub(",","",test$price))
+
+#create a new variable "famous_author"
+author_price <- train %>% 
+  group_by(authorstandard) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+test <- test %>% 
+  mutate(famous_author = ifelse(authorstandard %in% 
+                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+
+
+#Another variable "dealer_author"
+test$dealer_author <-0
+test <- within(test, dealer_author[dealer == 'R' & school_pntg == 'D/FL'] <- 1)
+test <- within(test, dealer_author[dealer == 'R' & school_pntg == 'S'] <- 1)
+
+
+#Another variable "dealer_school_pntg"
+test$dealer_school <-0
+test <- within(test, dealer_school[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+test <- within(test, dealer_school[dealer == 'R' & origin_author == 'S'] <- 1)
+
+
+#Another variable "endbuyer_paired"
+test$endbuyer_paired <-0
+test <- within(test, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
+test <- within(test, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
+
+
+#Another variable "endbuyer_paired"
+test$endbuyer_history <-0
+test <- within(test, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
+
+
+#Professor's recoding
+test <- test %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+
+#remove descriptive variables
+newTest <- test[,!names(test) %in% c("sale","lot","position","logprice","subject",
+                                        "authorstyle","authorstandard","author",
+                                        "winningbidder",
+                                        "Interm","Height_in","Width_in","Surface_Rect",
+                                        "Diam_in","Surface_Rnd","material","mat",
+                                        "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+#change all character strings to factors
+character_vars <- lapply(newTest, class) == "character"
+newTest[, character_vars] <- lapply(newTest[, character_vars], as.factor)
+
+#change the level of factors
+levels(newTest$type_intermed)[levels(newTest$type_intermed)==""] <- "NONE"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)==""] <- "NONE"
+levels(newTest$endbuyer)[levels(newTest$endbuyer)==""] <- "NONE"
+levels(newTest$materialCat)[levels(newTest$materialCat)==""] <- "NONE"
+levels(newTest$school_pntg)[levels(newTest$school_pntg)=="A"] <- "OTHER"
+levels(newTest$school_pntg)[levels(newTest$school_pntg)=="G"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="EBC"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="BB"] <- "OTHER"
+levels(newTest$winningbiddertype)[levels(newTest$winningbiddertype)=="ED"] <- "OTHER"
+
+#simple method to predict the NA in surface
+newTest$Surface[which(is.na(newTest$Surface)==TRUE)] <- mean(newTest$Surface, na.rm = TRUE)
+```
+
+```{r}
+combined <- rbind(newTrain,newTest)
+```
+
+```{r}
+load("paintings_validation.Rdata")
+valid <- paintings_validation
+
+#recode
+valid <- valid %>%
+  mutate(mat_recode = ifelse(mat %in% c("a", "bc", "c","br"), "metal",
+                             ifelse(mat %in% c("al", "ar", "m"), "stone",
+                                    ifelse(mat %in% c("co", "bt", "t","h","ta"), "canvas",
+                                           ifelse(mat %in% c("p", "ca"), "paper",
+                                                  ifelse(mat %in% c("b"), "wood",
+                                                         ifelse(mat %in% c("o", "e","v","mi","pa","g"), "other",
+                                                                ifelse(mat %in% c("n/a", ""), "uncertain", NA))))))))
+
+valid <- valid%>%
+  mutate(fig_mention = ifelse(nfigures ==0, "no figures", "figures"))
+
+valid <- valid%>%
+  mutate(artist_living_notliving = ifelse(artistliving==0, "not living", "living"))
+
+valid <- valid%>%
+  mutate(history_nohistory = ifelse(history==0, "no history", "history"))
+
+valid <- valid%>%
+  mutate(mytho_nomytho = ifelse(mytho==0, "no mytho", "mytho"))
+
+valid <- valid%>%
+  mutate(finished_nofinished = ifelse(finished==0, "no finished", "finished"))
+
+valid <- valid%>%
+  mutate(LF = ifelse(lrgfont==0, "no LF", "LF"))
+
+#change price into numeric
+valid$price <- as.numeric(gsub(",","",valid$price))
+
+prelim_combined <- rbind(train,test)
+
+#create a new variable "famous_author"
+author_price <- prelim_combined %>% 
+  group_by(authorstandard) %>% 
+  summarise(mean_price = mean(price)) %>% 
+  ungroup() %>% 
+  arrange(desc(mean_price))
+valid <- valid %>% 
+  mutate(famous_author = ifelse(authorstandard %in% 
+                                  author_price$authorstandard[which(author_price$mean_price >= 3000)],1,0))
+
+
+#Another variable "dealer_author"
+valid$dealer_author <-0
+valid <- within(valid, dealer_author[dealer == 'R' & school_pntg == 'D/FL'] <- 1)
+valid <- within(valid, dealer_author[dealer == 'R' & school_pntg == 'S'] <- 1)
+
+
+#Another variable "dealer_school_pntg"
+valid$dealer_school <-0
+valid <- within(valid, dealer_school[dealer == 'R' & origin_author == 'D/FL'] <- 1)
+valid <- within(valid, dealer_school[dealer == 'R' & origin_author == 'S'] <- 1)
+
+
+#Another variable "endbuyer_paired"
+valid$endbuyer_paired <-0
+valid <- within(valid, endbuyer_paired[endbuyer == 'B' & paired == 0] <- 1)
+valid <- within(valid, endbuyer_paired[endbuyer == 'C' & paired == 0] <- 1)
+
+
+#Another variable "endbuyer_paired"
+valid$endbuyer_history <-0
+valid <- within(valid, endbuyer_history[endbuyer == 'C' & history == 1] <- 1)
+
+
+#Professor's recoding
+valid <- valid %>%
+  mutate(shape_recode = ifelse(Shape == "", "Not Available",
+                               ifelse(Shape == "ovale", "oval",
+                                      ifelse(Shape == "ronde", "round",
+                                             ifelse(Shape == "octogon", "octagon", Shape)))))
+
+#remove descriptive variables
+newValid <- valid[,!names(valid) %in% c("sale","lot","position","logprice","subject",
+                                     "authorstyle","authorstandard","author",
+                                     "winningbidder",
+                                     "Interm","Height_in","Width_in","Surface_Rect",
+                                     "Diam_in","Surface_Rnd","material","mat",
+                                     "lands_sc","lands_elem","lands_figs","lands_ment")]
+
+#change all character strings to factors
+character_vars <- lapply(newValid, class) == "character"
+newValid[, character_vars] <- lapply(newValid[, character_vars], as.factor)
+
+#change the level of factors
+levels(newValid$type_intermed)[levels(newValid$type_intermed)==""] <- "NONE"
+levels(newValid$winningbiddertype)[levels(newValid$winningbiddertype)==""] <- "NONE"
+levels(newValid$endbuyer)[levels(newValid$endbuyer)==""] <- "NONE"
+levels(newValid$materialCat)[levels(newValid$materialCat)==""] <- "NONE"
+levels(newValid$school_pntg)[levels(newValid$school_pntg)=="A"] <- "OTHER"
+levels(newValid$school_pntg)[levels(newValid$school_pntg)=="G"] <- "OTHER"
+levels(newValid$school_pntg)[levels(newValid$school_pntg)=="S"] <- "OTHER"
+levels(newValid$winningbiddertype)[levels(newValid$winningbiddertype)=="EBC"] <- "OTHER"
+levels(newValid$winningbiddertype)[levels(newValid$winningbiddertype)=="BB"] <- "OTHER"
+levels(newValid$winningbiddertype)[levels(newValid$winningbiddertype)=="ED"] <- "OTHER"
+levels(newValid$mat_recode)[levels(newValid$mat_recode)=="stone"] <- "other"
+
+#simple method to predict the NA in surface
+newValid$Surface[which(is.na(newValid$Surface)==TRUE)] <- mean(newValid$Surface, na.rm = TRUE)
+```
+
+
+
+```{r}
+m <- lm(formula = log(price) ~ dealer + year + school_pntg + diff_origin + 
+        artistliving + winningbiddertype + Surface + engraved + 
+        prevcoll + paired + finished + lrgfont + othgenre +  
+        discauth + winningbiddertype:prevcoll + 
+        Surface:mat_recode + famous_author:Surface, data = combined)
+
+predictions = as.data.frame(
+  exp(predict(m, newdata=newValid, 
+              interval = "pred")))
+save(predictions, file="predict-validation.Rdata")
+```
